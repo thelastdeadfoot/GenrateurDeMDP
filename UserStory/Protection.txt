@@ -1,0 +1,16 @@
+Titre : Protection via un mot de passe maître
+
+En tant qu'utilisateur,
+Je veux protéger l'accès à mon gestionnaire de mots de passe via un mot de passe maître,
+Afin de garantir la confidentialité de mes mots de passe.
+
+Critères d'acceptation 
+
+L'utilisateurs doit définir un mot de passe unique et robuste lors de la premier connexion
+L'accès est impossible sans le mot de passe maître
+Une vérification de la robustesse est effectué lors de la création du mot de passe
+
+Priorité : haute
+
+Prévenir une tentatives d'intrusion avec blocage temporaire au bout de 3 tentatives infructueuse
+Respecter une longueurs minimum avec caractères spéciaux, majuscules, minuscules et chiffres
