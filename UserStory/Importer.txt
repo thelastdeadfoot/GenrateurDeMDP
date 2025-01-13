@@ -7,7 +7,7 @@ Afin de pouvoir les ajouter rapidement sans avoir besoin de les saisir manuellem
 Critères d'acceptation 
 
 Une interface pour déposer le fichier CSV.
-Respect un forma standardisé (Identifiant, mpd, URL).
+Respecte un format standardisé (Identifiant, mpd, URL).
 Une confirmation s’affiche pour vérifier les mots de passe ajoutés avec succès.
 Les doublons existants sont détectés et signalés sans interrompre l'importation.
 Un message d’erreur s’affiche si le fichier est corrompu ou non conforme.
@@ -15,6 +15,6 @@ Un message d’erreur s’affiche si le fichier est corrompu ou non conforme.
 Priorité : haute
 
 Utiliser une bibliothèque pour lire le contenu du fichier CSV.
-Chiffrement des mots importé.
+Chiffrement des mots importés.
 Vérification des doublons
-Un log des mots de passe qui n'ont pas pût être importés
+Un log des mots de passe qui n'ont pas pu être importés
