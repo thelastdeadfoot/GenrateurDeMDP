@@ -1,0 +1,20 @@
+Titre : Importer des mots de passe depuis un fichier CSV
+
+En tant qu'utilisateur,
+Je veux pouvoir importer mes mots de passe depuis un fichier CSV,
+Afin de pouvoir les ajouter rapidement sans avoir besoin de les saisir manuellement.
+
+Critères d'acceptation 
+
+Une interface pour déposer le fichier CSV.
+Respect un forma standardisé (Identifiant, mpd, URL).
+Une confirmation s’affiche pour vérifier les mots de passe ajoutés avec succès.
+Les doublons existants sont détectés et signalés sans interrompre l'importation.
+Un message d’erreur s’affiche si le fichier est corrompu ou non conforme.
+
+Priorité : haute
+
+Utiliser une bibliothèque pour lire le contenu du fichier CSV.
+Chiffrement des mots importé.
+Vérification des doublons
+Un log des mots de passe qui n'ont pas pût être importés
