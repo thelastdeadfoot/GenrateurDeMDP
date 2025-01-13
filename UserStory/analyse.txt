@@ -1,0 +1,14 @@
+Titre : Analyse de la robustesse des mots de passe 
+
+En tant qu'utilisateur, 
+je souhaite que le mot de passe généré soit analysé pour qu'il soit en concordance avec les critères de sécurité imposés
+
+Critère d'acceptation :
+- Analyse de la force d'un mdp avec les critère suivant :
+    -La longueur du mdp (>16)
+    -diversité des caractère (Upper, Lower, caractère spéciaux)
+    -il ne doit pas contenire de mot commun (bonjour, 1234 ect...)
+- Doit mesurer la complexité du mot de passe, selon les critère précedent
+- barre de progression a l'affiche lors de la generation des mdp
+
+Priorité : Moyen
