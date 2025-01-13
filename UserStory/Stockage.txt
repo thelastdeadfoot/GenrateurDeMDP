@@ -1,0 +1,15 @@
+Titre: stockage de mot de passe
+
+En tant qu'utilisateur, 
+Je souhaite que mes mots de passe soit stokée dans un environnement sécurisée (base de donnée), et pouvoir consulter cette environnement via l'application 
+
+Critère d'acceptation
+L'utilisateur doit pouvoir voir la base de données via l'application
+L'utilisateur doit pouvoir exporter les mdp de cette base de données dans un fichier chiffrée
+Il doit pouvoir rechercher un mdp rapidement via cette base de données
+L'utilisateur doit pouvoir importer des mots de passes sécurisée directement dans la bdd, un processus d'analyse ce mettras en place avant insertion des mdp, si le mdp n'est pas asser sécuriser, un message d'erreur aparaitras
+
+Priorité : Haute
+
+Note technique : 
+utilisation d'une base de données en ligne
