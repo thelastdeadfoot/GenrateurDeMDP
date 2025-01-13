@@ -6,15 +6,15 @@ afin de renouveler les mots de passe ayant plus de 3 mois d'existence
 
 Critère d'acceptation :
 
-L'utilisateurs doit recevoir une notification lorsqu'un mot de passe arrive proche de sa date d'expiration et ou l'a atteinte.
-L'utilisateurs reçoit une notification après 3 mois (90 jours)
-Les notifications peuvent être désactiver pour certain mot de passe ou au global
+L'utilisateur doit recevoir une notification lorsqu'un mot de passe arrive proche de sa date d'expiration et/ou l'a atteinte.
+L'utilisateur reçoit une notification après 3 mois (90 jours)
+Les notifications peuvent être désactivées pour certains mots de passe ou au global
 La notification doit préciser le mot de passe concerné (fichier s'il se trouve dans un fichier)
 
 Priorité : moyenne 
 
 Notes techniques :
 
-Implémentation d'un système de notification (Mail, icone alerte sur le logiciel).
-Processus qui vérifie en arrière plan les dates d'expirations des mots de passe.
+Implémentation d'un système de notification (Mail, icône alerte sur le logiciel).
+Processus qui vérifie en arrière-plan les dates d'expiration des mots de passe.
 Doit être claire et non intrusive.
