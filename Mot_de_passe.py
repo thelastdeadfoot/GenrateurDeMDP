@@ -1,16 +1,55 @@
 import random
 class Mot_de_passe :
 
-    def __init__(self,nb_caratere_maj,nb_caratere_min,nb_numero,nb_caratere_special):
+    def comparer(self):
+        try:
+            with open('mdp20000.txt', 'r') as f:
+                for ligne in f:
+                    ligne = ligne.strip()
+                    if ligne == self.mdp:
+                        return "Mot de passe trop commun"
+                
+                return "Mot de passe unique"
+                        
+        except FileNotFoundError:
+            return "Erreur: Le fichier mdp1000.txt n'a pas été trouvé"
+        except Exception as e:
+            return f"Erreur lors de la lecture du fichier: {str(e)}"
 
-        self.taille = nb_caratere_maj + nb_caratere_min + nb_numero + nb_caratere_special
-        self.mdp = self.genere_mot_de_passe(nb_caratere_maj,nb_caratere_min,nb_numero,nb_caratere_special)
-        self.nb_caratere_maj = nb_caratere_maj
-        self.nb_caratere_min = nb_caratere_min
-        self.nb_numero = nb_numero
-        self.nb_caratere_special = nb_caratere_special
-    
-    
+
+    def __init__(self,nb_caratere_maj,nb_caratere_min,nb_numero,nb_caratere_special,mot_de_passe=None):
+        
+        
+        if mot_de_passe == None:
+            self.taille = nb_caratere_maj + nb_caratere_min + nb_numero + nb_caratere_special
+            self.mdp = self.genere_mot_de_passe(nb_caratere_maj,nb_caratere_min,nb_numero,nb_caratere_special)
+            self.nb_caratere_maj = nb_caratere_maj
+            self.nb_caratere_min = nb_caratere_min
+            self.nb_numero = nb_numero
+            self.nb_caratere_special = nb_caratere_special
+        else :
+            self.mdp = mot_de_passe
+            self.taille = len(mot_de_passe)
+            self.nb_caratere_maj = 0
+            self.nb_caratere_min = 0
+            self.nb_numero = 0
+            self.nb_caratere_special = 0
+            for lettre in mot_de_passe:
+                
+                if 33 <= ord(lettre) <= 47 :
+                    self.nb_caratere_special += 1
+                    
+                if 48 <= ord(lettre) <= 57 :
+                    self.nb_numero += 1
+                    
+                if 65 <= ord(lettre) <= 90 :
+                    self.nb_caratere_maj += 1
+                    
+                if 97 <= ord(lettre) <= 122 :
+                    self.nb_caratere_maj += 1
+                    
+                    
+                    
     def upgrade_robustesse (self):
         if self.verifier_robustesse_mdp() == "trop court":
             print("votre mdp est maintenet Moyennement robuste passer le une fois de plus dans la methode pour plus de robustest")
@@ -94,4 +133,3 @@ class Mot_de_passe :
             mdp += variable
         mdp = ''.join(random.sample(mdp,len(mdp)))
         return mdp
-    
