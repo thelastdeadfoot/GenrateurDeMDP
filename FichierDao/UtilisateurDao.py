@@ -47,7 +47,7 @@ class UtilisateurDao:
 
     # Permet de verifier si l'utilisateur existe dans la bdd 
     # (utile lorsque il faut verifier l'existant d'un utilisateur)
-    def VerifUser(self, userAverif, userMdpAverif):
+    def verifUser(self, userAverif, userMdpAverif):
         print("verif de la donnée user")
         response = supabase.table("Utilisateurs").select("login", "mdpMaitre").eq("login", userAverif).eq("mdpMaitre", userMdpAverif).execute()
         print(response.data)
@@ -59,7 +59,7 @@ class UtilisateurDao:
             return False
     
     # Chercher quel mot de passe est associée a un utilisateur
-    def ChercheMdpSelonUser(self, userMdpAchercher):
+    def chercheMdpSelonUser(self, userMdpAchercher):
         print("Récupération de la donnée user"+ userMdpAchercher)
         response = supabase.from_("Utilisateurs").select('login, MotDePasse(mdp)').eq('login', userMdpAchercher).execute()
         print(response.data)
