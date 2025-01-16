@@ -12,10 +12,10 @@ def main():
     mdpDao.insertMdp(5, 2, 1, 1, "C5u!3", "Professionnel", 1)
 
     data = [
-    {"nbCaractere": "6", "nbNum": "3", "nbCarSpe": "2", "idSite": 1, "mdp": "abc123!", "categorie": "Professionnel", "idUtilisateur": 1},
-    {"nbCaractere": "8", "nbNum": "2", "nbCarSpe": "1", "idSite": 2, "mdp": "password$", "categorie": "Professionnel", "idUtilisateur": 1},
-    {"nbCaractere": "5", "nbNum": "1", "nbCarSpe": "0", "idSite": 3, "mdp": "qwerty", "categorie": "Personnel", "idUtilisateur": 1},
-    {"nbCaractere": "10", "nbNum": "4", "nbCarSpe": "3", "idSite": 4, "mdp": "secureP@ss", "categorie": "Personnel", "idUtilisateur": 1}]
+    {"nbCaractere": "6", "nbNum": "3", "nbCarSpe": "2", "idSite": 1, "mdp": "abc123!", "categorie": "Professionnel", "idUtilisateur": 1, "Robustesse": "Tres robuste"},
+    {"nbCaractere": "8", "nbNum": "2", "nbCarSpe": "1", "idSite": 2, "mdp": "password$", "categorie": "Professionnel", "idUtilisateur": 1,  "Robustesse": "Robuste"},
+    {"nbCaractere": "5", "nbNum": "1", "nbCarSpe": "0", "idSite": 3, "mdp": "qwerty", "categorie": "Personnel", "idUtilisateur": 1,  "Robustesse": "Peux robuste"},
+    {"nbCaractere": "10", "nbNum": "4", "nbCarSpe": "3", "idSite": 4, "mdp": "secureP@ss", "categorie": "Personnel", "idUtilisateur": 1,  "Robustesse": "Parfaitement Robuste"}]
 
     #insert une liste dans la base de données
     mdpDao.insertMdpList(data)
@@ -24,7 +24,7 @@ def main():
     mdpDao.recupAllMdp()
 
     #recupere tout les mot de passe selon une colonne et une valeur 
-    #ici, on cherche tout les mot de passe qui sont categoriser ""Professionnel
+    #ici, on cherche tout les mot de passe qui sont categoriser "Professionnel"
     mdpDao.recupMdpColonne("categorie", "Professionnel")
 
     #permet de recuperer un mot de passe choisie
@@ -33,6 +33,21 @@ def main():
     #met a jour un mot de passe
     #abc123! devient simplement b
     mdpDao.updateMdp("abc123!", "b")
+
+    #met a jour la colonne du nombre de caractère du mot de passe "b"
+    mdpDao.updateNbCaractere(3, "b")
+
+    #met a jour la colonne du nombre de caractère,spéciaux du mot de passe "b"
+    mdpDao.updateNbCarSpe(4, "b")
+    
+    #met a jour la colonne du nombre de nombre du mot de passe "b"
+    mdpDao.updateNbNum(5, "b")
+
+    #met a jour la colonne de la categorie du mot de passe "b"
+    mdpDao.updateMdpCategorie("Personnel", "b")
+
+    #met a jour la colonne de la robustesse du mot de passe "b"
+    mdpDao.updateMdpRobustesse("Peux robuste", "b")
 
     #supprime un mot de passe
     mdpDao.supMdp(["C5u!3"])   
@@ -96,13 +111,13 @@ def main():
     userDao.updateUser("guys", "guy")
 
     #Permet de chercher un mot de passe selon un utilisateur
-    userDao.chercheMdpSelonUser("mec")
+    userDao.ChercheMdpSelonUser("mec")
 
     #Permet de supprimer plusieurs ou 1 utilisateurs selon une liste 
     userDao.supUser(["mec", "guy", "dude"])
 
-   #Verifie si Jean-Huges existe dans la base de données
-    userDao.verifUser("Jean-Huges", "oui")
+    #Verifie si Jean-Huges existe dans la base de données
+    userDao.VerifUser("Jean-Huges", "oui")
 
 if __name__ == "__main__":
     main()
