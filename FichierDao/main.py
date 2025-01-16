@@ -9,7 +9,7 @@ def main():
     mdpDao=MotDePasseDao()
 
     #insert un seul mot de passe dans la base de données
-    mdpDao.insertMdp(5, 2, 1, 1, "C5u!3", "Professionnel", 1, "Robuste")
+    mdpDao.insertMdp(5, 2, 1, 1, "C5u!3", "Professionnel", 1, 1)
 
     data = [
     {"nbCaractere": "6", "nbNum": "3", "nbCarSpe": "2", "idSite": 1, "mdp": "abc123!", "categorie": "Professionnel", "idUtilisateur": 1, "Robustesse": 4},
@@ -47,7 +47,7 @@ def main():
     mdpDao.updateMdpCategorie("b", "Personnel")
 
     #met a jour la colonne de la robustesse du mot de passe "b"
-    mdpDao.updateMdpRobustesse("b", "Peux robuste")
+    mdpDao.updateMdpRobustesse("b", 2)
 
     #supprime un mot de passe
     mdpDao.supMdp(["C5u!3"])   
