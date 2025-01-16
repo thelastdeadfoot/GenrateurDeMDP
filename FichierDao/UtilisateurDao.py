@@ -44,7 +44,7 @@ class UtilisateurDao:
         response = supabase.table("Utilisateurs").select("login").eq("login", userAchercher).execute()
         print(response.data)
         return response.data
-
+    
     # Permet de verifier si l'utilisateur existe dans la bdd 
     # (utile lorsque il faut verifier l'existant d'un utilisateur)
     def verifUser(self, userAverif, userMdpAverif):
@@ -74,9 +74,9 @@ class UtilisateurDao:
     
     # Mettre a jour le mot de passe de l'utilisateur
     # On l'utiliseras si l'utilisateur veut changer de mot de passe
-    def updateMdp(self, mdpAmodifier, mdpModifier):
+    def updateMdp(self, mdpAmodifier, mdpModifier, user):
         print("Mise à jour de la donnée user : "+ mdpAmodifier)
-        response = supabase.table("Utilisateurs").update({"mdpMaitre": mdpModifier}).eq("mdpMaitre", mdpAmodifier).execute()
+        response = supabase.table("Utilisateurs").update({"mdpMaitre": mdpModifier}).eq("mdpMaitre", mdpAmodifier).eq("login", user).execute()
         print(response.data)
         return response.data
     
@@ -85,6 +85,7 @@ class UtilisateurDao:
     # a l'heure actuelle, si tu essaye de supprimer un utilisateur qui a un mot de passe associée du 
     # gestionnaire de mot de passe, il ne vas pas le supprimer
     def supUser(self, userAsup):
+        #genre ici, je dois mettre la fonction pour supprimer les mdp de l'utilisateur qui vas être supprimer
         print("Suppression des données user")
         response = supabase.table("Utilisateurs").delete().in_("login", userAsup).execute()
         print(response.data) 
