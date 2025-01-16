@@ -96,13 +96,13 @@ def main():
     userDao.updateUser("guys", "guy")
 
     #Permet de chercher un mot de passe selon un utilisateur
-    userDao.ChercheMdpSelonUser("mec")
+    userDao.chercheMdpSelonUser("mec")
 
     #Permet de supprimer plusieurs ou 1 utilisateurs selon une liste 
     userDao.supUser(["mec", "guy", "dude"])
 
    #Verifie si Jean-Huges existe dans la base de données
-    userDao.VerifUser("Jean-Huges", "oui")
+    userDao.verifUser("Jean-Huges", "oui")
 
 if __name__ == "__main__":
     main()
