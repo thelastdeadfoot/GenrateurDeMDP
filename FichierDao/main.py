@@ -101,5 +101,8 @@ def main():
     #Permet de supprimer plusieurs ou 1 utilisateurs selon une liste 
     userDao.supUser(["mec", "guy", "dude"])
 
+   #Verifie si Jean-Huges existe dans la base de données
+    userDao.VerifUser("Jean-Huges", "oui")
+
 if __name__ == "__main__":
     main()
