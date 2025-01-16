@@ -79,21 +79,21 @@ class MotDePasseDao:
     # Met a jour la colonne du nombre de caractère spéciaux d'un mot de passe donner
     def updateNbCarSpe(self, mdp, nvNbCarSpe):
         print("Mise à jour de la donnée mdp : "+ mdp)
-        response = supabase.table("MotDePasse").update({"nbNumCar": nvNbCarSpe}).eq("mdp", mdp).execute()       
+        response = supabase.table("MotDePasse").update({"nbCarSpe": nvNbCarSpe}).eq("mdp", mdp).execute()       
         print(response.data)
         return response.data
     
     # Met a jour la colonne categorie d'un mot de passe donner
     def updateMdpCategorie(self, mdp, nvCateMdp):
         print("Mise à jour de la donnée mdp : "+ mdp)
-        response = supabase.table("MotDePasse").update({"nbNumCar": nvCateMdp}).eq("mdp", mdp).execute()       
+        response = supabase.table("MotDePasse").update({"categorie": nvCateMdp}).eq("mdp", mdp).execute()       
         print(response.data)
         return response.data
 
     # Met a jour la colonne robuste d'un mot de passe donner
     def updateMdpRobustesse(self, mdp, nvRobMdp):
         print("Mise à jour de la donnée mdp : "+ mdp)
-        response = supabase.table("MotDePasse").update({"nbNumCar": nvRobMdp}).eq("mdp", mdp).execute()       
+        response = supabase.table("MotDePasse").update({"Robustesse": nvRobMdp}).eq("mdp", mdp).execute()       
         print(response.data)
         return response.data
 
