@@ -64,9 +64,9 @@ class Mot_de_passe :
             else :
                 self.nb_caratere_special += 1 
                     
-    def ligne_aleatoire(self):
+    def ligne_aleatoire(self ,fichier):
         try:
-            with open('liste_mot.txt', 'r', encoding='utf-8') as f:
+            with open(fichier, 'r', encoding='utf-8') as f:
                 # Convertit le fichier en liste de lignes
                 lignes = f.readlines()
                 
@@ -78,7 +78,7 @@ class Mot_de_passe :
                 ligne_random = random.choice(lignes).strip()
                 return ligne_random
         except FileNotFoundError:
-            return "Erreur: Le fichier mdp1000.txt n'a pas été trouvé"
+            return "Erreur: Le fichier n'a pas été trouvé"
         except Exception as e:
             return f"Erreur lors de la lecture du fichier: {str(e)}"
                     
@@ -97,7 +97,7 @@ class Mot_de_passe :
                 return False
                         
         except FileNotFoundError:
-            return "Erreur: Le fichier mdp1000.txt n'a pas été trouvé"
+            return "Erreur: Le fichier mdp20000.txt n'a pas été trouvé"
         except Exception as e:
             return f"Erreur lors de la lecture du fichier: {str(e)}" 
 
@@ -199,17 +199,12 @@ class Mot_de_passe :
         
         return note , liste_probleme
 
-    def get_mdp(self):
-        return self.mdp
-    
-    def get_taille(self):
-        return self.taille
     
     def complexiter(self):
         comp_nb =1+ 10**self.nb_numero
-        comp_cara_maj =1+ 52**self.nb_caratere_maj
+        comp_cara_maj =1+ 26**self.nb_caratere_maj
         comp_cara_min =1+ 26**self.nb_caratere_min
-        comp_cara_spe =1+ 101**self.nb_caratere_special
+        comp_cara_spe =1+ 42**self.nb_caratere_special
         return comp_nb*comp_cara_maj*comp_cara_min*comp_cara_spe
     
     def genere_mot_de_passe(self,nb_caratere_maj,nb_caratere_min,nb_numero,nb_caratere_special):
@@ -233,9 +228,14 @@ class Mot_de_passe :
             mdp += variable
 
         for i in range(nb_caratere_special):
-            variable = random.randint(33, 47)
-
-            variable = chr(variable)
+            variable = self.ligne_aleatoire("caratere_special.txt")
             mdp += variable
         mdp = ''.join(random.sample(mdp,len(mdp)))
         return mdp
+    
+    
+    
+mot= Mot_de_passe(0, 0, 0, 12)
+print(mot.complexiter())
+print(mot.mdp)
+# print(mot.upgrade_mot_de_passe())
