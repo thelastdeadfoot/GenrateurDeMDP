@@ -1,4 +1,5 @@
 import os
+import psycopg2
 from supabase import create_client, Client
 
 # Définir les clés d'environnement (faites ceci une fois, ou configurez-les dans votre système)
@@ -17,9 +18,9 @@ class MotDePasseDao:
         print("Instance de MotDePasseDao créée.")
 
     # Insertion d'un seul mot de passe
-    def insertMdp(self, nbCaractere, nbNum, nbCarSpe, idSite, mdp, categorie, idUtilisateur, Robuste):
+    def insertMdp(self, nbCaractere, nbNum, nbCarSpe, idSite, mdp, categorie, idUtilisateur, Robuste, carMini, carMaj):
         print("Insertion de donnée mdp : " +mdp)
-        data = {"nbCaractere": nbCaractere, "nbNum": nbNum, "nbCarSpe": nbCarSpe, "idSite": idSite, "mdp": mdp, "categorie": categorie, "idUtilisateur" : idUtilisateur, "Robustesse": Robuste} 
+        data = {"nbCaractere": nbCaractere, "nbNum": nbNum, "nbCarSpe": nbCarSpe, "idSite": idSite, "mdp": mdp, "categorie": categorie, "idUtilisateur" : idUtilisateur, "Robustesse": Robuste, "carMini" : carMini, "carMaj" : carMaj} 
         response = supabase.table("MotDePasse").insert(data).execute()
         print(response.data)
         return response.data
@@ -96,17 +97,29 @@ class MotDePasseDao:
         response = supabase.table("MotDePasse").update({"Robustesse": nvRobMdp}).eq("mdp", mdp).execute()       
         print(response.data)
         return response.data
+    
+    def updateMdpCarMini(self, mdp, nvCarMiniMdp):
+        print("Mise à jour de la donnée mdp : "+ mdp)
+        response = supabase.table("MotDePasse").update({"Robustesse": nvCarMiniMdp}).eq("mdp", mdp).execute()       
+        print(response.data)
+        return response.data
+    
+    def updateMdpCarMaj(self, mdp, nvCarMajMdp):
+        print("Mise à jour de la donnée mdp : "+ mdp)
+        response = supabase.table("MotDePasse").update({"Robustesse": nvCarMajMdp}).eq("mdp", mdp).execute()       
+        print(response.data)
+        return response.data
 
     # Supprimer un mot de passe (marche aussi avec une liste de mdp)
     def supMdp(self, mdpAsup):
         print("Suppression des données mdp")
         response = supabase.table("MotDePasse").delete().in_("mdp", mdpAsup).execute()
         print(response.data) 
-        return response.data   
+        return response.data 
 
     # permet de supprimer tout les mots de passe d'un user
     # oui, je suis obliger d'utiliser une autre api pour pouvoir executer des requete en brute
-    # (oui, c'est beaucoup plus chiant pour comprendre)
+    # (oui, c'est plus chiant pour comprendre)
     # en plus on est obliger de fermer la connexion manuellement
     def supMdpSelonUsers(self, usersAsup):
         print(f"Suppression des mots de passe pour les utilisateurs : ")
