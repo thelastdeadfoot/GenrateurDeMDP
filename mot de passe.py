@@ -205,6 +205,13 @@ class Mot_de_passe :
     def get_taille(self):
         return self.taille
     
+    def complexiter(self):
+        comp_nb =1+ 10**self.nb_numero
+        comp_cara_maj =1+ 52**self.nb_caratere_maj
+        comp_cara_min =1+ 26**self.nb_caratere_min
+        comp_cara_spe =1+ 101**self.nb_caratere_special
+        return comp_nb*comp_cara_maj*comp_cara_min*comp_cara_spe
+    
     def genere_mot_de_passe(self,nb_caratere_maj,nb_caratere_min,nb_numero,nb_caratere_special):
         mdp = ""
         for i in range(nb_caratere_min):
@@ -232,9 +239,3 @@ class Mot_de_passe :
             mdp += variable
         mdp = ''.join(random.sample(mdp,len(mdp)))
         return mdp
-    
-    
-    
-mot= Mot_de_passe(0, 0, 0, 0,"alpha ariva")
-print(mot.mdp)
-print(mot.upgrade_mot_de_passe())
