@@ -7,6 +7,8 @@ Created on Wed Jan 15 11:22:46 2025
 
 import random
 import string
+
+liste_obj = []
 class Mot_de_passe :
 
     
@@ -22,12 +24,10 @@ class Mot_de_passe :
         
         
         if mot_de_passe == None:
-            self.taille = nb_caratere_maj + nb_caratere_min + nb_numero + nb_caratere_special
             self.mdp = self.genere_mot_de_passe(nb_caratere_maj,nb_caratere_min,nb_numero,nb_caratere_special)
-            self.nb_caratere_maj = nb_caratere_maj
-            self.nb_caratere_min = nb_caratere_min
-            self.nb_numero = nb_numero
-            self.nb_caratere_special = nb_caratere_special
+            self.mise_a_jour()
+            liste_obj.append(self)
+            
         
         elif type(mot_de_passe) == int:
             self.mdp = ""
@@ -36,32 +36,21 @@ class Mot_de_passe :
                 self.mdp += mot
                 self.mdp += " "
             self.mise_a_jour()
-                
+            liste_obj.append(self)
         
         else :
             self.mdp = mot_de_passe
-            self.taille = len(mot_de_passe)
-            self.nb_caratere_maj = 0
-            self.nb_caratere_min = 0
-            self.nb_numero = 0
-            self.nb_caratere_special = 0
-            for lettre in mot_de_passe:
-                    
-                if 48 <= ord(lettre) <= 57 :
-                    self.nb_numero += 1
-                    
-                elif 65 <= ord(lettre) <= 90 :
-                    self.nb_caratere_maj += 1
-                    
-                elif 97 <= ord(lettre) <= 122 :
-                    self.nb_caratere_min += 1
-                    
-                else :
-                    self.nb_caratere_special += 1    
+            self.mise_a_jour() 
+            liste_obj.append(self)
                     
                     
-                    
+    def mise_a_jour_liste():
+        None
+    
+    
+    
     def mise_a_jour(self):
+        self.taille = len(self.mdp)
         self.nb_caratere_maj = 0
         self.nb_caratere_min = 0
         self.nb_numero = 0
@@ -102,7 +91,7 @@ class Mot_de_passe :
                     
                     
     
-    def comparer(self):
+    def test_mdp_commnu(self):
         try:
             with open('mdp20000.txt', 'r') as f:
                 for ligne in f:
@@ -176,11 +165,11 @@ class Mot_de_passe :
     def verifier_robustesse_mdp(self):
         note = 12
         liste_probleme = []
-        if len(self.get_mdp()) < 8:
+        if len(self.mdp) < 8:
              note -= 4
              liste_probleme.append("beacoup trop court")
              
-        if len(self.get_mdp()) < 12:
+        if len(self.mdp) < 12:
              note -= 2
              liste_probleme.append("trop court")
              
@@ -203,9 +192,17 @@ class Mot_de_passe :
             note -= 2
             liste_probleme.append("pas de caratere alphanumerique")
             
-        if self.comparer() == True:
+        if self.test_mdp_commnu() == True:
             note -= 3
             liste_probleme.append("mot de passe commun")
+        
+        liste_mdp =[]
+        for obj in liste_obj:
+            liste_mdp.append(obj.mdp)
+        
+        if liste_mdp.count(self.mdp) > 1:
+            liste_probleme.append("mot de passe deja existant")
+            note -= 2
             
         for char in self.mdp:
             if self.mdp.count(char) > 2 :
@@ -249,3 +246,12 @@ class Mot_de_passe :
             mdp += variable
         mdp = ''.join(random.sample(mdp,len(mdp)))
         return mdp
+    
+    
+    
+mot= Mot_de_passe(4,0,0,0,"oui")
+mot1= Mot_de_passe(4,0,0,0,"oui")
+print(mot.complexiter())
+print(mot.mdp)
+print(liste_obj)
+print(mot1.verifier_robustesse_mdp())
