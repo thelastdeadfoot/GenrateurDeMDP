@@ -18,12 +18,18 @@ class MotDePasseDao:
         print("Instance de MotDePasseDao créée.")
 
     # Insertion d'un seul mot de passe
-    def insertMdp(self, nbCaractere, nbNum, nbCarSpe, idSite, mdp, categorie, idUtilisateur, Robuste, carMini, carMaj):
-        print("Insertion de donnée mdp : " +mdp)
-        data = {"nbCaractere": nbCaractere, "nbNum": nbNum, "nbCarSpe": nbCarSpe, "idSite": idSite, "mdp": mdp, "categorie": categorie, "idUtilisateur" : idUtilisateur, "Robustesse": Robuste, "carMini" : carMini, "carMaj" : carMaj} 
+    def insertMdp(self,objetmotdepasse,idSite,idUtilisateur):
+        print("Insertion de donnée mdp : " +objetmotdepasse.mdp)
+        data = {"nbCaractere": objetmotdepasse.nb_caratere_min + objetmotdepasse.nb_caratere_maj , "nbNum": objetmotdepasse.nb_numero, "nbCarSpe": objetmotdepasse.nb_caratere_special, "idSite": idSite, "mdp": objetmotdepasse.mdp, "categorie": objetmotdepasse.categorie, "idUtilisateur" : idUtilisateur, "Robustesse": objetmotdepasse.verifier_robustesse_mdp(), "carMini":objetmotdepasse.nb_caratere_min,"carMaj" : objetmotdepasse.nb_caratere_maj} 
         response = supabase.table("MotDePasse").insert(data).execute()
         print(response.data)
         return response.data
+    
+    def creelistedata(self,listeobjet):
+        data = []
+        for objetmotdepasse in listeobjet:
+            data.append({"nbCaractere": objetmotdepasse.nb_caratere_min , "nbNum": objetmotdepasse.nb_numero, "nbCarSpe": objetmotdepasse.nb_caratere_special, "idSite": "1", "mdp": objetmotdepasse.mdp, "categorie": objetmotdepasse.categorie, "idUtilisateur" : "1", "Robustesse": objetmotdepasse.verifier_robustesse_mdp(),"carMini":objetmotdepasse.nb_caratere_min,"carMaj" : objetmotdepasse.nb_caratere_maj})
+        return data
         
     # Insertion de mot de passe via une liste
     def insertMdpList(self, data):
@@ -33,6 +39,11 @@ class MotDePasseDao:
         # response = supabase.table("MotDePasse").upsert(data).execute()
         print(response.data)
         return response.data
+    
+    def compare(self,mdp):
+        if len(self.recupOneMdp(mdp)) > 2:
+            return print("Doublon")
+        return print("Pas Doublon")
 
     # Récupérer toutes les mots de passe
     def recupAllMdp(self):
@@ -148,3 +159,10 @@ class MotDePasseDao:
             if conn:
                 conn.close()
                 print("Connexion à la base de données fermée.")
+
+
+    def supAllMdp(self):
+        print("Suppression de toutes les données mdp")
+        response = supabase.table("MotDePasse").delete().neq("mdp", "impossible_value").execute()
+        print(response.data)
+        return response.data
