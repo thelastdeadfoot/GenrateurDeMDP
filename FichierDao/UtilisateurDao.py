@@ -80,12 +80,14 @@ class UtilisateurDao:
         print(response.data)
         return response.data
     
-    # Supprime un utilisateur (marche seulement avec des list)
+    # Supprime un utilisateur (marche seulement avec une liste)
     # je dois aussi supprimer les mots de passe qui sont associée a l'utilisateur associée
-    # a l'heure actuelle, si tu essaye de supprimer un utilisateur qui a un mot de passe associée du 
+    # si tu essaye de supprimer un utilisateur qui a un mot de passe associée du 
     # gestionnaire de mot de passe, il ne vas pas le supprimer
+    # il faut obligatoirement supprimer les mot de passe de l'utilisateur que tu veux supprimer avec 
+    # la methode "supMdpSelonUser()" qui se trouve dans MotDePasseDao.py
+    # avant de supprimer l'utilisateur
     def supUser(self, userAsup):
-        #genre ici, je dois mettre la fonction pour supprimer les mdp de l'utilisateur qui vas être supprimer
         print("Suppression des données user")
         response = supabase.table("Utilisateurs").delete().in_("login", userAsup).execute()
         print(response.data) 
