@@ -100,13 +100,13 @@ class MotDePasseDao:
     
     def updateMdpCarMini(self, mdp, nvCarMiniMdp):
         print("Mise à jour de la donnée mdp : "+ mdp)
-        response = supabase.table("MotDePasse").update({"Robustesse": nvCarMiniMdp}).eq("mdp", mdp).execute()       
+        response = supabase.table("MotDePasse").update({"carMini": nvCarMiniMdp}).eq("mdp", mdp).execute()       
         print(response.data)
         return response.data
     
     def updateMdpCarMaj(self, mdp, nvCarMajMdp):
         print("Mise à jour de la donnée mdp : "+ mdp)
-        response = supabase.table("MotDePasse").update({"Robustesse": nvCarMajMdp}).eq("mdp", mdp).execute()       
+        response = supabase.table("MotDePasse").update({"carMaj": nvCarMajMdp}).eq("mdp", mdp).execute()       
         print(response.data)
         return response.data
 
