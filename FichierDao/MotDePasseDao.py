@@ -103,3 +103,35 @@ class MotDePasseDao:
         response = supabase.table("MotDePasse").delete().in_("mdp", mdpAsup).execute()
         print(response.data) 
         return response.data   
+
+    # permet de supprimer tout les mots de passe d'un user
+    # oui, je suis obliger d'utiliser une autre api pour pouvoir executer des requete en brute
+    # (oui, c'est beaucoup plus chiant pour comprendre)
+    # en plus on est obliger de fermer la connexion manuellement
+    def supMdpSelonUsers(self, usersAsup):
+        print(f"Suppression des mots de passe pour les utilisateurs : ")
+        try:
+            # Informations de connexion
+            conn = psycopg2.connect("postgresql://postgres:bZ60rQPU8FHKHjwi@db.vijrfostiknzlxhbsgwy.supabase.co:5432/postgres")
+            cur = conn.cursor()
+            
+            # requete en dur car l'api supabase ne supporte pas les jointure dans le delete
+            query = f"""
+            DELETE FROM "MotDePasse"
+            USING "Utilisateurs"
+            WHERE "MotDePasse"."idUtilisateur" = "Utilisateurs"."idUtilisateur"
+            AND "Utilisateurs"."login" IN %s;
+            """
+            
+            cur.execute(query, (tuple(usersAsup),))
+            conn.commit()
+            
+            print(f"Suppression réussie pour les utilisateurs : ")
+        
+        except Exception as e:
+            print(f"Erreur lors de la suppression : {e}")
+        
+        finally:
+            if conn:
+                conn.close()
+                print("Connexion à la base de données fermée.")
