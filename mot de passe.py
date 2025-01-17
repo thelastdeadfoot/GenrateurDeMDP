@@ -11,7 +11,13 @@ class Mot_de_passe :
 
     
 
-
+#   Class Mot de passe a comme atribue 
+#   le nombre de caratere minuscule 
+#   le nombre de caratere majuscule le nombre de numero 
+#   le nombre de numero 
+#   le nombre de caratere alphanumerique 
+#   le mot de passe 
+#   la taille du mot de passe 
     def __init__(self,nb_caratere_maj,nb_caratere_min,nb_numero,nb_caratere_special,mot_de_passe=None):
         
         
@@ -211,10 +217,10 @@ class Mot_de_passe :
 
     
     def complexiter(self):
-        comp_nb =1+ 10**self.nb_numero
-        comp_cara_maj =1+ 26**self.nb_caratere_maj
-        comp_cara_min =1+ 26**self.nb_caratere_min
-        comp_cara_spe =1+ 42**self.nb_caratere_special
+        comp_nb = 10**self.nb_numero
+        comp_cara_maj = 26**self.nb_caratere_maj
+        comp_cara_min = 26**self.nb_caratere_min
+        comp_cara_spe = 42**self.nb_caratere_special
         return comp_nb*comp_cara_maj*comp_cara_min*comp_cara_spe
     
     def genere_mot_de_passe(self,nb_caratere_maj,nb_caratere_min,nb_numero,nb_caratere_special):
@@ -243,10 +249,3 @@ class Mot_de_passe :
             mdp += variable
         mdp = ''.join(random.sample(mdp,len(mdp)))
         return mdp
-    
-    
-    
-mot= Mot_de_passe(0, 0, 0, 0,3)
-print(mot.complexiter())
-print(mot.mdp)
-# print(mot.upgrade_mot_de_passe())
