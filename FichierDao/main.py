@@ -114,6 +114,8 @@ def main():
     userDao.chercheMdpSelonUser("mec")
 
     #Permet de supprimer plusieurs ou 1 utilisateurs selon une liste 
+    #Si les utilisateurs ont des mot de passe associée dans le coffre a mdp, ne pas oublier de faire ça :
+    #mdpDao.supMdpSelonUsers(["mec", "guy", "dude"])
     userDao.supUser(["mec", "guy", "dude"])
 
     #Verifie si Jean-Huges existe dans la base de données
