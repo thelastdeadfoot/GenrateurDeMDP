@@ -9,13 +9,13 @@ def main():
     mdpDao=MotDePasseDao()
 
     #insert un seul mot de passe dans la base de données
-    mdpDao.insertMdp(5, 2, 1, 1, "C5u!3", "Professionnel", 1, 1)
+    mdpDao.insertMdp(5, 2, 1, 1, "C5u!3", "Professionnel", 1, 1, 2, 2)
 
     data = [
-    {"nbCaractere": "6", "nbNum": "3", "nbCarSpe": "2", "idSite": 1, "mdp": "abc123!", "categorie": "Professionnel", "idUtilisateur": 1, "Robustesse": 4},
-    {"nbCaractere": "8", "nbNum": "2", "nbCarSpe": "1", "idSite": 2, "mdp": "password$", "categorie": "Professionnel", "idUtilisateur": 1,  "Robustesse": 8},
-    {"nbCaractere": "5", "nbNum": "1", "nbCarSpe": "0", "idSite": 3, "mdp": "qwerty", "categorie": "Personnel", "idUtilisateur": 1,  "Robustesse": 11},
-    {"nbCaractere": "10", "nbNum": "4", "nbCarSpe": "3", "idSite": 4, "mdp": "secureP@ss", "categorie": "Personnel", "idUtilisateur": 1,  "Robustesse": 14}]
+    {"nbCaractere": "6", "nbNum": "3", "nbCarSpe": "2", "idSite": 1, "mdp": "abc123!", "categorie": "Professionnel", "idUtilisateur": 1, "Robustesse": 4, "carMini" : 2, "carMaj" : 2},
+    {"nbCaractere": "8", "nbNum": "2", "nbCarSpe": "1", "idSite": 2, "mdp": "password$", "categorie": "Professionnel", "idUtilisateur": 1,  "Robustesse": 8, "carMini" : 2, "carMaj" : 2},
+    {"nbCaractere": "5", "nbNum": "1", "nbCarSpe": "0", "idSite": 3, "mdp": "qwerty", "categorie": "Personnel", "idUtilisateur": 1,  "Robustesse": 1, "carMini" : 2, "carMaj" : 2},
+    {"nbCaractere": "10", "nbNum": "4", "nbCarSpe": "3", "idSite": 4, "mdp": "secureP@ss", "categorie": "Personnel", "idUtilisateur": 1,  "Robustesse": 14, "carMini" : 2, "carMaj" : 2}]
 
     #insert une liste dans la base de données
     mdpDao.insertMdpList(data)
@@ -48,6 +48,12 @@ def main():
 
     #met a jour la colonne de la robustesse du mot de passe "b"
     mdpDao.updateMdpRobustesse("b", 2)
+
+    #met a jour la colonne de carMini du mot de passe "b"
+    mdpDao.updateMdpCarMini("b", 4)
+
+    #met a jour la colonne de carMaj du mot de passe "b"
+    mdpDao.updateMdpCarMaj("b", 4)
 
     #supprime un mot de passe
     mdpDao.supMdp(["C5u!3"])   
