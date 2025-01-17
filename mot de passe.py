@@ -22,6 +22,16 @@ class Mot_de_passe :
             self.nb_caratere_min = nb_caratere_min
             self.nb_numero = nb_numero
             self.nb_caratere_special = nb_caratere_special
+        
+        elif type(mot_de_passe) == int:
+            self.mdp = ""
+            for i in range (mot_de_passe):
+                mot = self.ligne_aleatoire("liste_mot.txt")
+                self.mdp += mot
+                self.mdp += " "
+            self.mise_a_jour()
+                
+        
         else :
             self.mdp = mot_de_passe
             self.taille = len(mot_de_passe)
@@ -228,14 +238,15 @@ class Mot_de_passe :
             mdp += variable
 
         for i in range(nb_caratere_special):
-            variable = self.ligne_aleatoire("caratere_special.txt")
+            indice = random.randint(0, len(string.punctuation) - 1)
+            variable = string.punctuation[indice]
             mdp += variable
         mdp = ''.join(random.sample(mdp,len(mdp)))
         return mdp
     
     
     
-mot= Mot_de_passe(0, 0, 0, 12)
+mot= Mot_de_passe(0, 0, 0, 0,3)
 print(mot.complexiter())
 print(mot.mdp)
 # print(mot.upgrade_mot_de_passe())
