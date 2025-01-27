@@ -39,11 +39,6 @@ class MotDePasseDao:
         # response = supabase.table("MotDePasse").upsert(data).execute()
         print(response.data)
         return response.data
-    
-    def compare(self,mdp):
-        if len(self.recupOneMdp(mdp)) > 2:
-            return print("Doublon")
-        return print("Pas Doublon")
 
     # Récupérer toutes les mots de passe
     def recupAllMdp(self):
