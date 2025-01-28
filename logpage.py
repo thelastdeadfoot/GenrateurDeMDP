@@ -1,147 +1,162 @@
 import os
 import tkinter as tk
 from tkinter import messagebox
-from bcrypt import hashpw, gensalt
-from supabase import create_client, Client
+from UtilisateurDao import UtilisateurDao
 
-# Définir les clés d'environnement (faites ceci une fois, ou configurez-les dans votre système)
-os.environ["SUPABASE_URL"] = "https://vijrfostiknzlxhbsgwy.supabase.co"
-os.environ["SUPABASE_KEY"] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpanJmb3N0aWtuemx4aGJzZ3d5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY4NDc5NjgsImV4cCI6MjA1MjQyMzk2OH0.w3FWw1e6859mozW_I89UfxglgaEdnrIQFfnDzbCuj8g"
+class LoginSystem:
+    def __init__(self):
+        self.attempts = 0
+        self.lock_time = 120
+        self.utilisateur_dao = UtilisateurDao()
+        self.setup_ui()
 
-# Récupérer l'URL et la clé à partir des variables d'environnement
-url: str = os.environ.get("SUPABASE_URL")
-key: str = os.environ.get("SUPABASE_KEY")
-
-# Créer le client Supabase
-supabase: Client = create_client(url, key)
-
-# Variables pour la gestion des tentatives de connexion
-attempts = 0
-lock_time = 120
-
-def login():
-    """Fonction de connexion"""
-    global attempts
-    username = entry_username.get()
-    password = entry_password.get()
-    
-    # Vérification dans la base de données
-    response = supabase.table('users').select('*').eq('username', username).execute()
-    if response.data:
-        user = response.data[0]
-        if hashpw(password.encode(), user['password'].encode()) == user['password'].encode():
-            messagebox.showinfo("Connexion réussie", "Bienvenue!")
-            reset_attempts()
-            return
-    # Gestion des erreurs
-    attempts += 1
-    if attempts >= 3:
-        block_login()
-    else:
-        messagebox.showerror("Erreur", f"Nom d'utilisateur ou mot de passe incorrect. Tentatives restantes : {3 - attempts}")
-
-def block_login():
-    """Blocage temporaire après plusieurs tentatives échouées"""
-    button_login.config(state=tk.DISABLED)
-    messagebox.showwarning("Erreur", f"Trop de tentatives, nouvelles tentatives dans {lock_time} secondes.")
-    root.after(lock_time * 1000, unblock_login)
-
-def unblock_login():
-    """Réactivation du bouton de connexion après le délai"""
-    global attempts
-    attempts = 0
-    button_login.config(state=tk.NORMAL)
-
-def reset_attempts():
-    """Réinitialise le compteur de tentatives"""
-    global attempts
-    attempts = 0
-
-def singup():
-    """Fenêtre de création de compte"""
-    def create_account():
-        username = entry_username_singup.get()
-        password = entry_password_singup.get()
-        confirm_password = entry_confirm_password_singup.get()
+    def login(self):
+        """Fonction de connexion utilisant le DAO"""
+        username = self.entry_username.get()
+        password = self.entry_password.get()
         
+        if not username or not password:
+            messagebox.showerror("Erreur", "Veuillez remplir tous les champs")
+            return
+            
+        # Vérification de l'utilisateur via le DAO
+        verif = self.utilisateur_dao.verifUser(username, password)
+        
+        if verif == True:
+            messagebox.showinfo("Connexion réussie", "Bienvenue!")
+            self.reset_attempts()
+        else:
+            self.handle_failed_login()
+
+    def handle_failed_login(self):
+        """Gestion des tentatives de connexion échouées"""
+        self.attempts += 1
+        remaining = 3 - self.attempts
+        
+        if self.attempts >= 3:
+            self.block_login()
+        else:
+            messagebox.showerror("Erreur", 
+                f"Nom d'utilisateur ou mot de passe incorrect. Tentatives restantes : {remaining}")
+
+    def block_login(self):
+        """Blocage temporaire après plusieurs tentatives échouées"""
+        self.button_login.config(state=tk.DISABLED)
+        messagebox.showwarning("Erreur", 
+            f"Trop de tentatives, nouvelles tentatives dans {self.lock_time} secondes.")
+        self.root.after(self.lock_time * 1000, self.unblock_login)
+
+    def unblock_login(self):
+        """Réactivation du bouton de connexion après le délai"""
+        self.attempts = 0
+        self.button_login.config(state=tk.NORMAL)
+
+    def reset_attempts(self):
+        """Réinitialise le compteur de tentatives"""
+        self.attempts = 0
+
+    def signup(self):
+        """Fenêtre de création de compte"""
+        signup_window = SignupWindow(self.utilisateur_dao)
+
+    def setup_ui(self):
+        """Configuration de l'interface utilisateur"""
+        self.root = tk.Tk()
+        self.root.title("Page de connexion")
+        self.root.geometry("400x230")
+        self.root.resizable(False, False)
+
+        label_title = tk.Label(self.root, text="Connexion", font=("Arial", 16))
+        label_title.pack(pady=10)
+
+        frame_form = tk.Frame(self.root)
+        frame_form.pack(pady=10)
+
+        tk.Label(frame_form, text="Nom d'utilisateur").grid(row=0, column=0, pady=5, padx=5)
+        self.entry_username = tk.Entry(frame_form)
+        self.entry_username.grid(row=0, column=1, pady=5, padx=5)
+
+        tk.Label(frame_form, text="Mot de passe").grid(row=1, column=0, pady=5, padx=5)
+        self.entry_password = tk.Entry(frame_form, show="*")
+        self.entry_password.grid(row=1, column=1, pady=5, padx=5)
+
+        self.button_login = tk.Button(self.root, text="Se connecter", command=self.login)
+        self.button_login.pack(pady=10)
+
+        self.button_signup = tk.Button(self.root, text="Créer un compte", command=self.signup)
+        self.button_signup.pack(pady=10)
+
+class SignupWindow:
+    def __init__(self, utilisateur_dao):
+        self.utilisateur_dao = utilisateur_dao
+        self.setup_ui()
+
+    def create_account(self):
+        """Création d'un nouveau compte utilisateur"""
+        username = self.entry_username.get()
+        password = self.entry_password.get()
+        confirm_password = self.entry_confirm_password.get()
+        
+        if not self.validate_inputs(username, password, confirm_password):
+            return
+            
+        try:
+            # Vérification si l'utilisateur existe déjà
+            existing_user = self.utilisateur_dao.recupOneUser(username)
+            if existing_user and len(existing_user) > 0:
+                messagebox.showerror("Erreur", "Ce nom d'utilisateur existe déjà")
+                return
+                
+            # Utilisation de insertUser pour créer le nouvel utilisateur
+            result = self.utilisateur_dao.insertUser(username, password)
+            
+            if result and len(result) > 0:
+                messagebox.showinfo("Succès", "Compte créé avec succès !")
+                self.window.destroy()
+            else:
+                messagebox.showerror("Erreur", "La création du compte a échoué")
+                
+        except Exception as e:
+            messagebox.showerror("Erreur", str(e))
+
+    def validate_inputs(self, username, password, confirm_password):
+        """Validation des entrées utilisateur"""
         if not username or not password or not confirm_password:
             messagebox.showerror("Erreur", "Tous les champs sont obligatoires.")
-            return
+            return False
         
         if password != confirm_password:
             messagebox.showerror("Erreur", "Les mots de passe ne correspondent pas.")
-            return
-        
-        # Vérification si l'utilisateur existe déjà
-        response = supabase.table('users').select('username').eq('username', username).execute()
-        if response.data:
-            messagebox.showerror("Erreur", "Nom d'utilisateur déjà pris.")
-            return
-        
-        # Hachage du mot de passe et création du compte
-        hashed_password = hashpw(password.encode(), gensalt())
-        supabase.table('users').insert({"username": username, "password": hashed_password.decode()}).execute()
-        messagebox.showinfo("Succès", "Compte créé avec succès !")
-        singup_window.destroy()
+            return False
+            
+        return True
 
-    # Création de la fenêtre singup
-    singup_window = tk.Tk()
-    singup_window.title("Création de compte")
-    singup_window.geometry("400x230")
-    singup_window.resizable(False, False)
+    def setup_ui(self):
+        """Configuration de l'interface utilisateur"""
+        self.window = tk.Toplevel()
+        self.window.title("Création de compte")
+        self.window.geometry("400x230")
+        self.window.resizable(False, False)
 
-    label_title = tk.Label(singup_window, text="Création du compte", font=("Arial", 16))
-    label_title.pack(pady=10)
+        tk.Label(self.window, text="Création du compte", font=("Arial", 16)).pack(pady=10)
 
-    frame_form = tk.Frame(singup_window)
-    frame_form.pack(pady=10)
+        frame_form = tk.Frame(self.window)
+        frame_form.pack(pady=10)
 
-    label_username = tk.Label(frame_form, text="Nom d'utilisateur")
-    label_username.grid(row=0, column=0, pady=5, padx=5)
-    entry_username_singup = tk.Entry(frame_form)
-    entry_username_singup.grid(row=0, column=1, pady=5, padx=5)
+        tk.Label(frame_form, text="Nom d'utilisateur").grid(row=0, column=0, pady=5, padx=5)
+        self.entry_username = tk.Entry(frame_form)
+        self.entry_username.grid(row=0, column=1, pady=5, padx=5)
 
-    label_password = tk.Label(frame_form, text="Mot de passe")
-    label_password.grid(row=1, column=0, pady=5, padx=5)
-    entry_password_singup = tk.Entry(frame_form, show="*")
-    entry_password_singup.grid(row=1, column=1, pady=5, padx=5)
+        tk.Label(frame_form, text="Mot de passe").grid(row=1, column=0, pady=5, padx=5)
+        self.entry_password = tk.Entry(frame_form, show="*")
+        self.entry_password.grid(row=1, column=1, pady=5, padx=5)
 
-    label_confirm_password = tk.Label(frame_form, text="Confirmer le mot de passe")
-    label_confirm_password.grid(row=2, column=0, pady=5, padx=5)
-    entry_confirm_password_singup = tk.Entry(frame_form, show="*")
-    entry_confirm_password_singup.grid(row=2, column=1, pady=5, padx=5)
+        tk.Label(frame_form, text="Confirmer le mot de passe").grid(row=2, column=0, pady=5, padx=5)
+        self.entry_confirm_password = tk.Entry(frame_form, show="*")
+        self.entry_confirm_password.grid(row=2, column=1, pady=5, padx=5)
 
-    button_singup = tk.Button(singup_window, text="Créer un compte", command=create_account)
-    button_singup.pack(pady=10)
+        tk.Button(self.window, text="Créer un compte", command=self.create_account).pack(pady=10)
 
-    singup_window.mainloop()
-
-# Création de la fenêtre principale
-root = tk.Tk()
-root.title("Page de connexion")
-root.geometry("400x230")
-root.resizable(False, False)
-
-label_title = tk.Label(root, text="Connexion", font=("Arial", 16))
-label_title.pack(pady=10)
-
-frame_form = tk.Frame(root)
-frame_form.pack(pady=10)
-
-label_username = tk.Label(frame_form, text="Nom d'utilisateur")
-label_username.grid(row=0, column=0, pady=5, padx=5)
-entry_username = tk.Entry(frame_form)
-entry_username.grid(row=0, column=1, pady=5, padx=5)
-
-label_password = tk.Label(frame_form, text="Mot de passe")
-label_password.grid(row=1, column=0, pady=5, padx=5)
-entry_password = tk.Entry(frame_form, show="*")
-entry_password.grid(row=1, column=1, pady=5, padx=5)
-
-button_login = tk.Button(root, text="Se connecter", command=login)
-button_login.pack(pady=10)
-
-button_singup = tk.Button(root, text="Créer un compte", command=singup)
-button_singup.pack(pady=10)
-
-root.mainloop()
+if __name__ == "__main__":
+    app = LoginSystem()
+    app.root.mainloop()
