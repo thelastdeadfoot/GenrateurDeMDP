@@ -9,19 +9,29 @@ import random
 import string
 
 liste_obj = []
-class Mot_de_passe :
+"""
+Attributs
 
-    
+categorie : Indique si le mot de passe est professionnel (booléen)
+mdp : Le mot de passe lui-même (chaîne de caractères)
+nb_caratere_maj : Nombre de caractères majuscules
+nb_caratere_min : Nombre de caractères minuscules
+nb_numero : Nombre de chiffres
+nb_caratere_special : Nombre de caractères spéciaux
+taille : Longueur du mot de passe
 
-#   Class Mot de passe a comme atribue 
-#   le nombre de caratere minuscule 
-#   le nombre de caratere majuscule le nombre de numero 
-#   le nombre de numero 
-#   le nombre de caratere alphanumerique 
-#   le mot de passe 
-#   la taille du mot de passe 
-    def __init__(self,nb_caratere_maj,nb_caratere_min,nb_numero,nb_caratere_special,mot_de_passe=None):
-        
+Comportement
+
+Si mot_de_passe est None : Génère un nouveau mot de passe selon les critères spécifiés
+Si mot_de_passe est un entier : Génère un mot de passe composé de mots aléatoires
+Si mot_de_passe est une chaîne : Utilise cette chaîne comme mot de passe
+"""
+
+class Motdepasse :
+
+
+    def __init__(self,nb_caratere_maj=0 ,nb_caratere_min=0 ,nb_numero=0 ,nb_caratere_special=0 ,professionel=0 ,mot_de_passe=None ):
+        self.categorie = professionel
         
         if mot_de_passe == None:
             self.mdp = self.genere_mot_de_passe(nb_caratere_maj,nb_caratere_min,nb_numero,nb_caratere_special)
@@ -37,18 +47,22 @@ class Mot_de_passe :
                 self.mdp += " "
             self.mise_a_jour()
             liste_obj.append(self)
-        
-        else :
+            
+        elif mot_de_passe == "aleatoire":
+             self.mdp = self.genere_mot_de_passe_aleatoire(12)
+             self.mise_a_jour() 
+             liste_obj.append(self)
+             
+        elif type(mot_de_passe) == str :
             self.mdp = mot_de_passe
             self.mise_a_jour() 
             liste_obj.append(self)
                     
-                    
-    def mise_a_jour_liste():
-        None
+        
+             
     
     
-    
+#   Met à jour les compteurs de caractères du mot de passe actuel.
     def mise_a_jour(self):
         self.taille = len(self.mdp)
         self.nb_caratere_maj = 0
@@ -71,11 +85,8 @@ class Mot_de_passe :
                     
     def ligne_aleatoire(self ,fichier):
         try:
-            with open(fichier, 'r', encoding='utf-8') as f:
-                # Convertit le fichier en liste de lignes
+            with open(fichier, 'r') as f:
                 lignes = f.readlines()
-                
-                # Vérifie si le fichier n'est pas vide
                 if not lignes:
                     return "Erreur: Le fichier est vide"
                 
@@ -90,7 +101,11 @@ class Mot_de_passe :
                     
                     
                     
-    
+    """
+    Vérifie si le mot de passe existe dans une liste de mots de passe courants.
+
+    Retourne : True si le mot de passe est commun, False sinon
+    """
     def test_mdp_commnu(self):
         try:
             with open('mdp20000.txt', 'r') as f:
@@ -150,7 +165,7 @@ class Mot_de_passe :
     
         while len(self.mdp) < 12:
                 
-            caracteres = chr(random.randint(21, 122))
+            caracteres = chr(random.randint(32, 122))
             self.mdp += random.choice(caracteres)
             
         for char in self.mdp:
@@ -162,8 +177,23 @@ class Mot_de_passe :
         return self.mdp
             
             
+    """
+    verifier_robustesse_mdp()
+    Évalue la robustesse du mot de passe sur une échelle de 0 à 17.
+    
+    Critères pénalisants :
+    
+    Longueur insuffisante (-2 ou -6 points)
+    Absence de minuscules (-2 points)
+    Absence de majuscules (-2 points)
+    Absence de chiffres (-1 point)
+    Absence de caractères spéciaux (-2 points)
+    Mot de passe commun (-3 points)
+    Mot de passe déjà existant (-2 points)
+    Caractères répétés (-1 point)
+    """
     def verifier_robustesse_mdp(self):
-        note = 12
+        note = 17
         liste_probleme = []
         if len(self.mdp) < 8:
              note -= 4
@@ -210,9 +240,9 @@ class Mot_de_passe :
                 liste_probleme.append("des lettre en commun")
                 break
         
-        return note , liste_probleme
+        return note 
 
-    
+    # Calcule la complexité du mot de passe basée sur le nombre de possibilités pour chaque type de caractère.
     def complexiter(self):
         comp_nb = 10**self.nb_numero
         comp_cara_maj = 26**self.nb_caratere_maj
@@ -248,10 +278,17 @@ class Mot_de_passe :
         return mdp
     
     
+    def genere_mot_de_passe_aleatoire(self,taille):
+        mdp = ""
+        for i in range(taille):
+            variable = random.randint(32, 122)
+            print(variable)
+            variable = chr(variable)
+            mdp += variable
+        
+        mdp = ''.join(random.sample(mdp,len(mdp)))
+        return mdp
     
-mot= Mot_de_passe(4,0,0,0,"oui")
-mot1= Mot_de_passe(4,0,0,0,"oui")
-print(mot.complexiter())
-print(mot.mdp)
-print(liste_obj)
-print(mot1.verifier_robustesse_mdp())
+    
+motdepasse = Motdepasse(0,0,0,0,1,"aleatoire")
+print(motdepasse.mdp)
