@@ -293,3 +293,7 @@ class Motdepasse :
     
 motdepasse = Motdepasse(0,0,0,0,1,"aleatoire")
 print(motdepasse.mdp)
+print(motdepasse.nb_caratere_maj)
+print(motdepasse.nb_caratere_min)
+print(motdepasse.nb_caratere_special)
+print(motdepasse.nb_numero)
