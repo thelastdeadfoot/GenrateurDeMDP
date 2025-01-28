@@ -24,6 +24,7 @@ Comportement
 
 Si mot_de_passe est None : Génère un nouveau mot de passe selon les critères spécifiés
 Si mot_de_passe est un entier : Génère un mot de passe composé de mots aléatoires
+Si mot_de_passe est "aleatoire" : Génère un mot de passe aléatoires (12 caratere)
 Si mot_de_passe est une chaîne : Utilise cette chaîne comme mot de passe
 """
 
