@@ -1,6 +1,8 @@
 import os
 import tkinter as tk
 from tkinter import messagebox
+import subprocess  
+import sys        
 from UtilisateurDao import UtilisateurDao
 
 class LoginSystem:
@@ -23,8 +25,8 @@ class LoginSystem:
         verif = self.utilisateur_dao.verifUser(username, password)
         
         if verif == True:
-            messagebox.showinfo("Connexion réussie", "Bienvenue!")
-            self.reset_attempts()
+             self.root.destroy()
+             subprocess.Popen([sys.executable, "Page_Principale.py"])
         else:
             self.handle_failed_login()
 
