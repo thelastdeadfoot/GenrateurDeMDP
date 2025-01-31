@@ -65,8 +65,7 @@ def afficher_mdp(bdd):
     for row in bdd.get_children():
         bdd.delete(row)
 
-    #mdpTrouve = dao.recupAllMdpUser(user.getLogin(),user.getMdp())
-    mdpTrouve = dao.recupAllMdpUser("dude","13b73edae8443990be1aa8f1a483bc27")
+    mdpTrouve = dao.recupAllMdpUser(user.getLogin(),user.getMdp())
 
     print(mdpTrouve)
 
