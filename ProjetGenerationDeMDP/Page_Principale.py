@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 from typing import List, Tuple
 
 from chiffrementMDP.Chiffrement import Chiffrement
@@ -91,8 +91,16 @@ class VueGenerateur:
             command=self.controleur.generer_mot_de_passe
         )
         self.bouton_generer.pack(pady=5)
+
+        # Nouveau bouton pour écrire un mot de passe
+        self.bouton_ecrire = ttk.Button(
+            self.parent,
+            text="Écrire un mot de passe",
+            command=self.controleur.ecrire_mot_de_passe
+        )
+        self.bouton_ecrire.pack(pady=5)
         
-        # Nouveau bouton pour améliorer le mot de passe
+        # Bouton améliorer
         self.bouton_ameliorer = ttk.Button(
             self.parent,
             text="Améliorer le mot de passe",
@@ -147,48 +155,6 @@ class VueGenerateur:
             self.style.configure("rouge.Horizontal.TProgressbar", foreground='yellow', background='yellow')
         else:
             self.style.configure("rouge.Horizontal.TProgressbar", foreground='Green', background='Green')
-
-class VueCoffre:
-    """Vue pour le coffre-fort de mots de passe"""
-    
-    def __init__(self, parent, controleur):
-        self.parent = parent
-        self.controleur = controleur
-        self.configurer_interface()
-
-    def configurer_interface(self):
-        self.effacer()
-        
-        # Titre
-        self.etiquette_titre = tk.Label(self.parent, text="Coffre de mot de passe", font=("Arial", 14))
-        self.etiquette_titre.pack(pady=10)
-        
-        # Configuration de l'arborescence
-        colonnes = ("Mot de passe", "Site", "Categorie", "NbCaractère", "NbChiffre", 
-                   "NbCaraSpe", "NbCarMini", "NbCarMaj")
-        self.arborescence = ttk.Treeview(self.parent, columns=colonnes, show="headings")
-        
-        for col in colonnes:
-            self.arborescence.heading(col, text=col)
-            self.arborescence.column(col, anchor="center")
-        
-        # Barre de défilement
-        barre_defilement = ttk.Scrollbar(self.parent, orient="vertical", command=self.arborescence.yview)
-        self.arborescence.configure(yscrollcommand=barre_defilement.set)
-        
-        # Placement
-        self.arborescence.pack(side="left", fill="both", expand=True)
-        barre_defilement.pack(side="right", fill="y")
-
-    def effacer(self):
-        for widget in self.parent.winfo_children():
-            widget.destroy()
-
-    def mettre_a_jour_arborescence(self, donnees: List[Tuple]):
-        for ligne in self.arborescence.get_children():
-            self.arborescence.delete(ligne)
-        for ligne in donnees:
-            self.arborescence.insert("", "end", values=ligne)
 
 class ControleurGestionnaireMDP:
     """Contrôleur principal de l'application"""
@@ -247,6 +213,30 @@ class ControleurGestionnaireMDP:
     def afficher_coffre(self):
         self.vue_coffre = VueCoffre(self.cadre_contenu, self)
         self.mettre_a_jour_donnees_coffre()
+
+    def ecrire_mot_de_passe(self):
+        # Demander à l'utilisateur d'entrer un mot de passe
+        mdp = simpledialog.askstring("Mot de passe", "Entrez votre mot de passe:", show="*")
+        
+        if mdp:
+            try:
+                # Créer un nouvel objet Motdepasse avec le mot de passe entré
+                self.mot_de_passe_courant = Motdepasse(0, 0, 0, 0, 1, mdp)
+                
+                # Calculer la force du mot de passe
+                force = (self.mot_de_passe_courant.verifier_robustesse_mdp() / 17) * 100
+                self.vue_generateur.mettre_a_jour_barre_progression(force)
+                
+                # Mettre à jour l'affichage
+                texte_resultat = f"Mot de passe : {self.mot_de_passe_courant.mdp}\n note du mot de passe : {force}"
+                self.vue_generateur.etiquette_resultat.config(text=texte_resultat)
+                
+                # Activer les boutons
+                self.vue_generateur.bouton_copier.config(state="normal")
+                self.vue_generateur.bouton_ameliorer.config(state="normal")
+                
+            except Exception as e:
+                messagebox.showerror("Erreur", f"Une erreur est survenue : {str(e)}")
 
     def generer_mot_de_passe(self):
         try:
@@ -335,6 +325,48 @@ class ControleurGestionnaireMDP:
 
     def executer(self):
         self.racine.mainloop()
+
+class VueCoffre:
+    """Vue pour le coffre-fort de mots de passe"""
+    
+    def __init__(self, parent, controleur):
+        self.parent = parent
+        self.controleur = controleur
+        self.configurer_interface()
+
+    def configurer_interface(self):
+        self.effacer()
+        
+        # Titre
+        self.etiquette_titre = tk.Label(self.parent, text="Coffre de mot de passe", font=("Arial", 14))
+        self.etiquette_titre.pack(pady=10)
+        
+        # Configuration de l'arborescence
+        colonnes = ("Mot de passe", "Site", "Categorie", "NbCaractère", "NbChiffre", 
+                   "NbCaraSpe", "NbCarMini", "NbCarMaj")
+        self.arborescence = ttk.Treeview(self.parent, columns=colonnes, show="headings")
+        
+        for col in colonnes:
+            self.arborescence.heading(col, text=col)
+            self.arborescence.column(col, anchor="center")
+        
+        # Barre de défilement
+        barre_defilement = ttk.Scrollbar(self.parent, orient="vertical", command=self.arborescence.yview)
+        self.arborescence.configure(yscrollcommand=barre_defilement.set)
+        
+        # Placement
+        self.arborescence.pack(side="left", fill="both", expand=True)
+        barre_defilement.pack(side="right", fill="y")
+
+    def effacer(self):
+        for widget in self.parent.winfo_children():
+            widget.destroy()
+
+    def mettre_a_jour_arborescence(self, donnees: List[Tuple]):
+        for ligne in self.arborescence.get_children():
+            self.arborescence.delete(ligne)
+        for ligne in donnees:
+            self.arborescence.insert("", "end", values=ligne)
 
 if __name__ == "__main__":
     app = ControleurGestionnaireMDP()
