@@ -29,6 +29,8 @@ Si mot_de_passe est une chaîne : Utilise cette chaîne comme mot de passe
 """
 
 class Motdepasse :
+
+
     def __init__(self,nb_caratere_maj=0 ,nb_caratere_min=0 ,nb_numero=0 ,nb_caratere_special=0 ,professionel=0 ,mot_de_passe=None ):
         self.categorie = professionel
         
@@ -196,7 +198,7 @@ class Motdepasse :
         liste_probleme = []
         if len(self.mdp) < 8:
              note -= 4
-             liste_probleme.append("beacoup rtop court")
+             liste_probleme.append("beacoup trop court")
              
         if len(self.mdp) < 12:
              note -= 2
@@ -274,6 +276,7 @@ class Motdepasse :
             variable = string.punctuation[indice]
             mdp += variable
         mdp = ''.join(random.sample(mdp,len(mdp)))
+        mdp.mise_a_jour
         return mdp
     
     
@@ -286,12 +289,5 @@ class Motdepasse :
             mdp += variable
         
         mdp = ''.join(random.sample(mdp,len(mdp)))
+        mdp.mise_a_jour
         return mdp
-    
-    
-motdepasse = Motdepasse(0,0,0,0,1,"aleatoire")
-print(motdepasse.mdp)
-print(motdepasse.nb_caratere_maj)
-print(motdepasse.nb_caratere_min)
-print(motdepasse.nb_caratere_special)
-print(motdepasse.nb_numero)
