@@ -1,8 +1,9 @@
 import os
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
+from tkinter import ttk, messagebox, simpledialog, filedialog
 from typing import List, Tuple
 
+from ProjetGenerationDeMDP.CSV.fonctionCSV import fonctionCSV
 from chiffrementMDP.Chiffrement import Chiffrement
 from model.Utilisateur import Utilisateur
 from modelDao.MotDePasseDao import MotDePasseDao
@@ -189,6 +190,7 @@ class ControleurGestionnaireMDP:
         # Initialisation des vues
         self.vue_generateur = VueGenerateur(self.cadre_contenu, self)
         self.vue_coffre = VueCoffre(self.cadre_contenu, self)
+        self.vue_csv = VueCSV(self.cadre_contenu)
         
         # Configuration des boutons du menu
         self.configurer_menu()
@@ -206,6 +208,8 @@ class ControleurGestionnaireMDP:
                    command=self.afficher_coffre).pack(side="left", padx=5)
         ttk.Button(self.cadre_menu, text="Générateur de mot de passe", 
                    command=self.afficher_generateur).pack(side="left", padx=5)
+        ttk.Button(self.cadre_menu, text="Importer via CSV",
+                   command=self.afficher_csv).pack(side="left", padx=5)
 
     def afficher_generateur(self):
         self.vue_generateur = VueGenerateur(self.cadre_contenu, self)
@@ -213,6 +217,8 @@ class ControleurGestionnaireMDP:
     def afficher_coffre(self):
         self.vue_coffre = VueCoffre(self.cadre_contenu, self)
         self.mettre_a_jour_donnees_coffre()
+    def afficher_csv(self):
+        self.vue_csv = VueCSV(self.cadre_contenu)
 
     def ecrire_mot_de_passe(self):
         # Demander à l'utilisateur d'entrer un mot de passe
@@ -367,6 +373,43 @@ class VueCoffre:
             self.arborescence.delete(ligne)
         for ligne in donnees:
             self.arborescence.insert("", "end", values=ligne)
+
+
+class VueCSV:
+    """Vue pour l'import de CSV"""
+    def __init__(self, cadre_contenu):
+        self.cadre_contenu = cadre_contenu
+        self.configurer_interface()
+
+    def configurer_interface(self):
+        self.effacer()
+
+        entries_frame = ttk.Frame(self.cadre_contenu)
+        entries_frame.pack(pady=10)
+
+        # Titre
+        etiquette_titre = tk.Label(self.cadre_contenu, text="Importer des mdp avec un CSV", font=("Arial", 14))
+        etiquette_titre.pack(pady=10)
+
+        csv_select = tk.Label(self.cadre_contenu, text="Import CSV", font=("Arial", 9))
+        csv_select.pack(pady=10)
+
+        import_bouton = ttk.Button(self.cadre_contenu, text="importer un fichier CSV", command=lambda: self.manipCsv(csv_select, tk, self.cadre_contenu))
+        import_bouton.pack(pady=10)
+
+        selectAll_bouton = ttk.Button(self.cadre_contenu, text="Tout envoyée", state="disabled")
+        selectAll_bouton.pack(pady=10)
+
+    def effacer(self):
+        for widget in self.cadre_contenu.winfo_children():
+            widget.destroy()
+
+    def manipCsv(self, label, tk, cadre_contenu):
+        filename = filedialog.askopenfilename()
+        print('Selectionner:', filename)
+        label.config(text=filename)
+        fCSV = fonctionCSV(filename)
+        fCSV.envoieMdpViaCSV(tk, cadre_contenu)
 
 if __name__ == "__main__":
     app = ControleurGestionnaireMDP()
