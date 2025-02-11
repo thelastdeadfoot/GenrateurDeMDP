@@ -1,6 +1,5 @@
 import io
 import os
-import tempfile
 
 import pandas as pd
 import psycopg2
@@ -18,28 +17,8 @@ class fonctionCSV:
         self.fichierCSV = fichierCSV
         print("fonctionCSV crée")
 
-    #La fonction qui permet d'inserer les données dans la base de données
-    def load_dataAll(self, lectureFichier, nomTable, nomDonnee):
-        #connexion a la base de données
-        #probleme, ne marche qu'avec un reseau en IPv6
-        con = psycopg2.connect("postgresql://postgres:bZ60rQPU8FHKHjwi@db.vijrfostiknzlxhbsgwy.supabase.co:5432/postgres")
-        cursor = con.cursor()
-        try:
-            print("Début de la phase d'insertion dans la base de donnée")
-            #Requete qui permet d'inserer tout les données avec un csv
-            copySql = f'COPY "{nomTable}"({nomDonnee}) FROM STDOUT WITH CSV'
-            cursor.copy_expert(copySql, lectureFichier)
-            con.commit()
-            print("Nbre de lignes enregistrés {}".format(cursor.rowcount))
-        except Exception  as e:
-            print("Une erreur est survenue pendant la phase d'insertion {}".format(e))
-        finally:
-            cursor.close()
-            con.close()
-            print("Fermeture de la connexion")
-
     # La fonction qui permet d'inserer les données dans la base de données
-    def load_dataOne(self, lectureFichier, nomTable, nomDonnee):
+    def load_data(self, lectureFichier, nomTable, nomDonnee):
         # connexion a la base de données
         # probleme, ne marche qu'avec un reseau en IPv6
         con = psycopg2.connect(
@@ -104,7 +83,7 @@ class fonctionCSV:
             ligne_df = pd.DataFrame([row])
             print(ligne_df)
             leTexte = "\n".join(ligne_df.apply(lambda row: f"{row['mdp']} / {row['idSite']}", axis=1))
-            tk.Label(frame, text=leTexte, relief="solid", background="lightblue").grid(row=index, column=0, padx=1, pady=3, sticky="nsew")
+            tk.Label(frame, text=leTexte, relief="solid", background="lightblue").grid(row=index+1, column=0, padx=1, pady=3, sticky="nsew")
 
         #Comme l'utilisateur mettras au moins 2 valeurs, je suis obliger de remplir a ça place les categorie qu'il a pas mis
         colonnes_manquantes = ["nbCaractere", "nbNum", "nbCarSpe", "idUtilisateur", "Robustesse","carMini","carMaj"]
@@ -135,7 +114,7 @@ class fonctionCSV:
             ligne_df = pd.DataFrame([row])
             print(ligne_df)
             leTexteRobuste = "\n".join(ligne_df.apply(lambda row: f"{row['Robustesse']}", axis=1))
-            tk.Label(frame, text=leTexteRobuste, relief="solid", background="lightgreen").grid(row=index, column=1, padx=1, pady=3, sticky="nsew")
+            tk.Label(frame, text=leTexteRobuste, relief="solid", background="lightgreen").grid(row=index+1, column=1, padx=1, pady=3, sticky="nsew")
 
         #cela verfie si le site que l'utilisateur a mis existe
         for verifSite in df["idSite"]:
@@ -151,24 +130,16 @@ class fonctionCSV:
         df["mdp"] = "\\x" + hexConvert
         print(df.to_string(max_rows=20))
 
+        tk.Button(frame, text=f"Envoyer MDP", command=lambda ligne=ligne_df: self.load_data(df, "MotDePasse",'"mdp", "idSite", "categorie", "nbCaractere", "nbNum", "nbCarSpe", "idUtilisateur", "Robustesse", "carMini", "carMaj"')).grid(row=0, column=2, padx=1, pady=3, sticky="nsew")
+
         for index, row in df.iterrows():
             print("la, on est rentré dans le for")
             ligne_df = pd.DataFrame([row])
             print(ligne_df)
-            tk.Button(frame, text=f"Envoyer MDP (Ligne {index})", command=lambda ligne=ligne_df: self.load_dataOne(ligne,"MotDePasse",'"mdp", "idSite", "categorie", "nbCaractere", "nbNum", "nbCarSpe", "idUtilisateur", "Robustesse", "carMini", "carMaj"')).grid(row=index, column=2, padx=1, pady=3, sticky="nsew")
+            tk.Button(frame, text=f"Envoyer MDP (Ligne {index})", command=lambda ligne=ligne_df: self.load_data(ligne,"MotDePasse",'"mdp", "idSite", "categorie", "nbCaractere", "nbNum", "nbCarSpe", "idUtilisateur", "Robustesse", "carMini", "carMaj"')).grid(row=index+1, column=1, padx=1, pady=3, sticky="nsew")
+
         return df
 
     def envoieMdpViaCSV(self, tk, cadre_contenu):
-        # du coup voici comment ça marche
-        # fait tout les modif
-        fichierTraite = self.extraction(self.fichierCSV, tk, cadre_contenu)
-
-        # puis ecrase ou crée un fichier avec toute les donnée qu'on a manipulé en format csv
-        fichier = fonctionCSV.saveToFile(self, fichierTraite)
-
-        # et envoie les donnée en COPY
-        self.load_dataAll(fichier, "MotDePasse",'"mdp", "idSite", "categorie", "nbCaractere", "nbNum", "nbCarSpe", "idUtilisateur", "Robustesse", "carMini", "carMaj"')
-
-#Comment on l'utilise :
-#fCSV = fonctionCSV()
-#fCSV.envoieMdpViaCSV()
+        # fait tout les modif, extrait le contenue du csv, le modifie, et l'envoie vers la bdd
+        self.extraction(self.fichierCSV, tk, cadre_contenu)
