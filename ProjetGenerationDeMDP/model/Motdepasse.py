@@ -252,42 +252,95 @@ class Motdepasse :
         return comp_nb*comp_cara_maj*comp_cara_min*comp_cara_spe
     
     def genere_mot_de_passe(self,nb_caratere_maj,nb_caratere_min,nb_numero,nb_caratere_special):
-        mdp = ""
+        self.mdp = ""
         for i in range(nb_caratere_min):
             variable = random.randint(97, 122)
 
             variable = chr(variable)
-            mdp += variable
+            self.mdp += variable
         
         for i in range(nb_caratere_maj):
             variable = random.randint(65, 90)
 
             variable = chr(variable)
-            mdp += variable
+            self.mdp += variable
 
         for i in range(nb_numero):
             variable = random.randint(48, 57)
 
             variable = chr(variable)
-            mdp += variable
+            self.mdp += variable
 
         for i in range(nb_caratere_special):
             indice = random.randint(0, len(string.punctuation) - 1)
             variable = string.punctuation[indice]
-            mdp += variable
-        mdp = ''.join(random.sample(mdp,len(mdp)))
-        mdp.mise_a_jour
-        return mdp
+            self.mdp += variable
+        self.mdp = ''.join(random.sample(self.mdp,len(self.mdp)))
+        self.mise_a_jour()
+        return self.mdp
     
     
     def genere_mot_de_passe_aleatoire(self,taille):
-        mdp = ""
+        self.mdp = ""
         for i in range(taille):
             variable = random.randint(32, 122)
             print(variable)
             variable = chr(variable)
-            mdp += variable
+            self.mdp += variable
         
-        mdp = ''.join(random.sample(mdp,len(mdp)))
-        mdp.mise_a_jour
-        return mdp
+        self.mdp = ''.join(random.sample(self.mdp,len(self.mdp)))
+        self.mise_a_jour()
+        return self.mdp
+    
+    def caracteres_exclus(self, caracteres_a_exclure: str):
+        if not caracteres_a_exclure:
+            return
+            
+        nouveau_mdp = list(self.mdp)
+        
+        for i, char in enumerate(nouveau_mdp):
+            if char in caracteres_a_exclure:
+                caratere = ord(char)
+                
+                if 65 <= caratere <= 90:
+                    while True:
+                        nouveau_char = chr(random.randint(65, 90))
+                        if nouveau_char not in caracteres_a_exclure:
+                            nouveau_mdp[i] = nouveau_char
+                            break
+                
+                elif 97 <= caratere <= 122:
+                    while True:
+                        nouveau_char = chr(random.randint(97, 122))
+                        if nouveau_char not in caracteres_a_exclure:
+                            nouveau_mdp[i] = nouveau_char
+                            break
+                
+                elif 48 <= caratere <= 57:
+                    while True:
+                        nouveau_char = chr(random.randint(48, 57))
+                        if nouveau_char not in caracteres_a_exclure:
+                            nouveau_mdp[i] = nouveau_char
+                            break
+                
+                # Caractères spéciaux (33-47, 58-64, 91-96, 123-126)
+                else:
+                    while True:
+                        # Sélectionne une plage de caractères spéciaux aléatoirement
+                        plages = [(33, 47), (58, 64), (91, 96), (123, 126)]
+                        debut, fin = random.choice(plages)
+                        nouveau_char = chr(random.randint(debut, fin))
+                        if nouveau_char not in caracteres_a_exclure:
+                            nouveau_mdp[i] = nouveau_char
+                            break
+        
+        self.mdp = ''.join(nouveau_mdp)
+        self.mise_a_jour()
+        return self.mdp
+    
+motdepasse = Motdepasse(0,0,0,0,1,"aleatoire")
+print(motdepasse.mdp)
+print(motdepasse.nb_caratere_maj)
+print(motdepasse.nb_caratere_min)
+print(motdepasse.nb_caratere_special)
+print(motdepasse.nb_numero)
