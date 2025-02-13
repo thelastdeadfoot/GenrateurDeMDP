@@ -1,9 +1,8 @@
 import os
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog, filedialog
+from tkinter import ttk, messagebox, simpledialog
 from typing import List, Tuple
 
-from ProjetGenerationDeMDP.CSV.fonctionCSV import fonctionCSV
 from chiffrementMDP.Chiffrement import Chiffrement
 from model.Utilisateur import Utilisateur
 from modelDao.MotDePasseDao import MotDePasseDao
@@ -70,10 +69,7 @@ class VueGenerateur:
         config_cases = [
             ("remplacer_caracteres", "remplacer caracteres repetes", 0, 0),
             ("aleatoire", "cree un mot de passe aleatoire", 0, 1),
-            ("cond3", "Condition 3", 0, 2),
-            ("cond4", "Condition 4", 1, 0),
-            ("cond5", "Condition 5", 1, 1),
-            ("cond6", "Condition 6", 1, 2)
+            ("semblable", "remplacer caractères semblable", 0, 2)
         ]
         
         for cle, texte, ligne, colonne in config_cases:
@@ -84,6 +80,13 @@ class VueGenerateur:
                 case = ttk.Checkbutton(cadre_cases, text=texte, variable=var)
             case.grid(row=ligne, column=colonne, padx=5, pady=2, sticky="w")
             self.cases_a_cocher[cle] = var
+            
+        # Ajout du champ pour les caractères exclus
+        cadre_exclus = ttk.Frame(self.parent)
+        cadre_exclus.pack(pady=5)
+        tk.Label(cadre_exclus, text="Caractères exclus").pack()
+        self.champ_exclus = ttk.Entry(cadre_exclus, width=30)
+        self.champ_exclus.pack()
         
         # Boutons
         self.bouton_generer = ttk.Button(
@@ -147,6 +150,9 @@ class VueGenerateur:
 
     def obtenir_valeurs_cases(self) -> dict:
         return {cle: var.get() for cle, var in self.cases_a_cocher.items()}
+
+    def obtenir_caracteres_exclus(self) -> str:
+        return self.champ_exclus.get()
 
     def mettre_a_jour_barre_progression(self, valeur: float):
         self.barre_progression["value"] = valeur
@@ -248,19 +254,23 @@ class ControleurGestionnaireMDP:
         try:
             valeurs = self.vue_generateur.obtenir_valeurs_champs()
             cases_cochees = self.vue_generateur.obtenir_valeurs_cases()
+            caracteres_exclus = self.vue_generateur.obtenir_caracteres_exclus()
             
             # Création de l'objet mot de passe
             obj_mdp = Motdepasse(valeurs['maj'], valeurs['min'], 
                                 valeurs['num'], valeurs['special'], 1, None)
             
-            # Applique le remplacement des caractères similaires si la case est cochée
-            if cases_cochees.get('remplacer_caracteres', False):
-                obj_mdp.remplacer_caracteres_repetes()
-            
             if cases_cochees.get('aleatoire', False):
                 print("alea")
                 obj_mdp.genere_mot_de_passe(4, 4, 4, 4)
+                
+            obj_mdp.caracteres_exclus(caracteres_exclus)
             
+            # Applique le remplacement des caractères similaires si la case est cochée
+            if cases_cochees.get('remplacer_caracteres', False):
+                obj_mdp.remplacer_caracteres_repetes()
+                
+                
             # Calcul de la force du mot de passe
             force = (obj_mdp.verifier_robustesse_mdp() / 17) * 100
             self.vue_generateur.mettre_a_jour_barre_progression(force)
