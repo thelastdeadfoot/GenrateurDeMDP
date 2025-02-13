@@ -47,11 +47,10 @@ class UtilisateurDao:
 
     # Recupere l'id d'un Utilisateur
     def recupIdUtilisateur(self, utilisateurIdAchercher):
-        print("Récupération des données de " + "\'" + utilisateurIdAchercher + "\'")
-        response = supabase.table("Site").select("idSite").eq("nomSite", utilisateurIdAchercher).execute()
-        if response.data and len(response.data) > 0:
-            e = int(response.data[0]["idSite"])
-            return e
+        print(f"Récupération des données de '{utilisateurIdAchercher}'")
+        response = supabase.table("Utilisateurs").select("idUtilisateur").eq("login", utilisateurIdAchercher).execute()
+        print(response.data)
+        return response.data[0]["idUtilisateur"]
 
     # Permet de verifier si l'utilisateur existe dans la bdd 
     # (utile lorsque il faut verifier l'existant d'un utilisateur)
