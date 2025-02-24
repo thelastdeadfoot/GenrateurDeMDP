@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog, filedialog
 from typing import List, Tuple
 
-from ProjetGenerationDeMDP.CSV.fonctionCSV import fonctionCSV
+from CSV.fonctionCSV import fonctionCSV
 from chiffrementMDP.Chiffrement import Chiffrement
 from model.Utilisateur import Utilisateur
 from modelDao.MotDePasseDao import MotDePasseDao
@@ -122,6 +122,14 @@ class VueGenerateur:
             state="disabled"
         )
         self.bouton_copier.pack(pady=5)
+        
+        self.bouton_sauvegarder = ttk.Button(
+            self.parent,
+            text="Sauvegarder le mot de passe",
+            command=self.controleur.sauvgarder_mot_de_passe,
+            state="disabled"
+        )
+        self.bouton_sauvegarder.pack(pady=5)
 
     def basculer_config_champs(self):
         """
@@ -250,7 +258,8 @@ class ControleurGestionnaireMDP:
                 # Activer les boutons
                 self.vue_generateur.bouton_copier.config(state="normal")
                 self.vue_generateur.bouton_ameliorer.config(state="normal")
-
+                self.vue_generateur.bouton_sauvegarder.config(state="normal")
+                
             except Exception as e:
                 messagebox.showerror("Erreur", f"Une erreur est survenue : {str(e)}")
 
@@ -284,7 +293,7 @@ class ControleurGestionnaireMDP:
             # Activer les boutons de copie et d'amélioration
             self.vue_generateur.bouton_copier.config(state="normal")
             self.vue_generateur.bouton_ameliorer.config(state="normal")
-
+            self.vue_generateur.bouton_sauvegarder.config(state="normal")
             # Stocker le mot de passe pour une éventuelle amélioration
             self.mot_de_passe_courant = obj_mdp
 
@@ -318,14 +327,31 @@ class ControleurGestionnaireMDP:
 
     def copier_mot_de_passe(self):
         try:
-            mot_de_passe = self.vue_generateur.etiquette_resultat.cget("text").split("\n")[0].replace("Mot de passe : ",
-                                                                                                      "")
+            mot_de_passe = self.vue_generateur.etiquette_resultat.cget("text").split("\n")[0].replace("Mot de passe : ","")
             self.racine.clipboard_clear()
             self.racine.clipboard_append(mot_de_passe)
             self.racine.update()
             messagebox.showinfo("Succès", "Mot de passe copié dans le presse-papiers !")
         except Exception as e:
             messagebox.showerror("Erreur", f"Impossible de copier : {str(e)}")
+
+    def sauvgarder_mot_de_passe(self):
+        try:
+            self.mdp_dao.insertMdp(
+                nbCaractere=self.mot_de_passe_courant.taille, 
+                nbNum=self.mot_de_passe_courant.nb_numero, 
+                nbCarSpe=self.mot_de_passe_courant.nb_caratere_special, 
+                idSite="idSite", 
+                mdp=self.mot_de_passe_courant.mdp,  # Utilisez .mdp au lieu de l'objet entier
+                categorie=self.mot_de_passe_courant.categorie, 
+                idUtilisateur="idUtilisateur",
+                Robuste=self.mot_de_passe_courant.verifier_robustesse_mdp(), 
+                carMini=self.mot_de_passe_courant.nb_caratere_min, 
+                carMaj=self.mot_de_passe_courant.nb_caratere_maj
+            )
+            messagebox.showinfo("Succès", "Mot de passe sauvegardé dans la base de données !")
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Impossible de sauvegarder : {str(e)}")
 
     def mettre_a_jour_donnees_coffre(self):
         mots_de_passe = self.mdp_dao.recupAllMdpUser(self.utilisateur.getLogin(), self.utilisateur.getMdp())
