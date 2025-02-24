@@ -1,169 +1,457 @@
+import os
 import tkinter as tk
-from tkinter import ttk, messagebox
-from motdepasse import Motdepasse
+from tkinter import ttk, messagebox, simpledialog, filedialog
+from typing import List, Tuple
 
-def generer_mdp():
-    try:
-        # Récupération des valeurs des entrées
-        nombre1 = int(entry1.get())
-        nombre2 = int(entry2.get())
-        nombre3 = int(entry3.get())
-        nombre4 = int(entry4.get())
+from ProjetGenerationDeMDP.CSV.fonctionCSV import fonctionCSV
+from ProjetGenerationDeMDP.chiffrementMDP.Chiffrement import Chiffrement
+from ProjetGenerationDeMDP.model.Utilisateur import Utilisateur
+from ProjetGenerationDeMDP.modelDao.MotDePasseDao import MotDePasseDao
+from ProjetGenerationDeMDP.model.Motdepasse import Motdepasse
+
+
+class VueGenerateur:
+    """Vue pour le générateur de mot de passe"""
+
+    def __init__(self, parent, controleur):
+        self.parent = parent
+        self.controleur = controleur
+        self.champs = {}
+        self.cases_a_cocher = {}
+        self.style = ttk.Style()
+        self.style.theme_use('clam')
+        self.configurer_interface()
+
+    def configurer_interface(self):
+        self.effacer()
+
+        # Titre
+        self.etiquette_titre = tk.Label(self.parent, text="Générateur de mot de passe", font=("Arial", 14))
+        self.etiquette_titre.pack(pady=10)
+
+        # Cadre pour les entrées
+        cadre_entrees = ttk.Frame(self.parent)
+        cadre_entrees.pack(pady=10)
+
+        # Configuration des entrées
+        config_champs = [
+            ("maj", "Nombre de caractères majuscules", 0, 0),
+            ("min", "Nombre de caractères minuscules", 0, 1),
+            ("num", "Nombre de Numéro", 1, 0),
+            ("special", "Nombre de caractères spéciaux", 1, 1)
+        ]
+
+        for cle, etiquette, ligne, colonne in config_champs:
+            cadre = ttk.Frame(cadre_entrees)
+            cadre.grid(row=ligne, column=colonne, padx=10, pady=5)
+            tk.Label(cadre, text=etiquette).pack()
+            champ = ttk.Entry(cadre, width=10)
+            champ.insert("end", "0")
+            champ.pack()
+            self.champs[cle] = champ
+
+        # Barre de progression
+        self.barre_progression = ttk.Progressbar(
+            self.parent,
+            style="rouge.Horizontal.TProgressbar",
+            orient="horizontal",
+            length=200,
+            mode="determinate"
+        )
+        self.barre_progression.pack(pady=20)
+
+        # Étiquette résultat
+        self.etiquette_resultat = tk.Label(self.parent, text="", font=("Arial", 12), fg="black")
+        self.etiquette_resultat.pack(pady=10)
+
+        # Configuration des cases à cocher
+        cadre_cases = ttk.Frame(self.parent)
+        cadre_cases.pack(pady=5)
+
+        config_cases = [
+            ("remplacer_caracteres", "remplacer caracteres repetes", 0, 0),
+            ("aleatoire", "cree un mot de passe aleatoire", 0, 1),
+            ("semblable", "remplacer caractères semblable", 0, 2)
+        ]
+
+        for cle, texte, ligne, colonne in config_cases:
+            var = tk.BooleanVar()
+            if cle == "aleatoire":
+                case = ttk.Checkbutton(cadre_cases, text=texte, variable=var, command=self.basculer_config_champs)
+            else:
+                case = ttk.Checkbutton(cadre_cases, text=texte, variable=var)
+            case.grid(row=ligne, column=colonne, padx=5, pady=2, sticky="w")
+            self.cases_a_cocher[cle] = var
+
+        # Ajout du champ pour les caractères exclus
+        cadre_exclus = ttk.Frame(self.parent)
+        cadre_exclus.pack(pady=5)
+        tk.Label(cadre_exclus, text="Caractères exclus").pack()
+        self.champ_exclus = ttk.Entry(cadre_exclus, width=30)
+        self.champ_exclus.pack()
+
+        # Boutons
+        self.bouton_generer = ttk.Button(
+            self.parent,
+            text="Générer le mot de passe",
+            command=self.controleur.generer_mot_de_passe
+        )
+        self.bouton_generer.pack(pady=5)
+
+        # Nouveau bouton pour écrire un mot de passe
+        self.bouton_ecrire = ttk.Button(
+            self.parent,
+            text="Écrire un mot de passe",
+            command=self.controleur.ecrire_mot_de_passe
+        )
+        self.bouton_ecrire.pack(pady=5)
+
+        # Bouton améliorer
+        self.bouton_ameliorer = ttk.Button(
+            self.parent,
+            text="Améliorer le mot de passe",
+            command=self.controleur.ameliorer_mot_de_passe,
+            state="disabled"  # Désactivé par défaut
+        )
+        self.bouton_ameliorer.pack(pady=5)
+
+        self.bouton_copier = ttk.Button(
+            self.parent,
+            text="Copier le mot de passe",
+            command=self.controleur.copier_mot_de_passe,
+            state="disabled"
+        )
+        self.bouton_copier.pack(pady=5)
         
-        mdp_obj = Motdepasse(nombre1, nombre2, nombre3, nombre4, 1, None)
-        bar["value"] = (mdp_obj.verifier_robustesse_mdp()/17)*100
-        if bar["value"] < 30:
-            s.configure("red.Horizontal.TProgressbar", foreground='red', background='red')
-        elif bar["value"] < 65:
-            s.configure("red.Horizontal.TProgressbar", foreground='yellow', background='yellow')
+        self.bouton_sauvegarder = ttk.Button(
+            self.parent,
+            text="Sauvegarder le mot de passe",
+            command=self.controleur.sauvgarder_mot_de_passe,
+            state="disabled"
+        )
+        self.bouton_sauvegarder.pack(pady=5)
+
+    def basculer_config_champs(self):
+        """
+        Désactive ou active les champs de configuration
+        lorsque la case 'aléatoire' est cochée
+        """
+        est_aleatoire = self.cases_a_cocher['aleatoire'].get()
+
+        # Désactiver/activer les champs de configuration
+        for champ in self.champs.values():
+            if est_aleatoire:
+                champ.config(state='disabled')
+                # Mettre à 4 les valeurs quand aléatoire est coché
+                champ.delete(0, tk.END)
+                champ.insert(0, "4")
+            else:
+                champ.config(state='normal')
+                # Remettre à 0 si on décoche aléatoire
+                champ.delete(0, tk.END)
+                champ.insert(0, "0")
+
+    def effacer(self):
+        for widget in self.parent.winfo_children():
+            widget.destroy()
+
+    def obtenir_valeurs_champs(self) -> dict:
+        return {cle: int(champ.get()) for cle, champ in self.champs.items()}
+
+    def obtenir_valeurs_cases(self) -> dict:
+        return {cle: var.get() for cle, var in self.cases_a_cocher.items()}
+
+    def obtenir_caracteres_exclus(self) -> str:
+        return self.champ_exclus.get()
+
+    def mettre_a_jour_barre_progression(self, valeur: float):
+        self.barre_progression["value"] = valeur
+        if valeur < 30:
+            self.style.configure("rouge.Horizontal.TProgressbar", foreground='red', background='red')
+        elif valeur < 65:
+            self.style.configure("rouge.Horizontal.TProgressbar", foreground='yellow', background='yellow')
         else:
-            s.configure("red.Horizontal.TProgressbar", foreground='Green', background='Green')
-            
-        # Récupération des conditions cochées
-        conditions_cochees = []
-        if var1.get():
-            conditions_cochees.append("Condition 1")
-        if var2.get():
-            conditions_cochees.append("Condition 2")
-        if var3.get():
-            conditions_cochees.append("Condition 3")
-        if var4.get():
-            conditions_cochees.append("Condition 4")
-        if var5.get():
-            conditions_cochees.append("Condition 5")
-        if var6.get(): 
-            conditions_cochees.append("Condition 6")
-        print(conditions_cochees)
-        # Création du texte des conditions
-        
-        resultat_label.config(text=f"Mot de passe : {mdp_obj.mdp}\n note du mot de passe : {bar['value']}")
-        copie_bouton.config(state="normal")
-    except ValueError:
-        messagebox.showerror("Erreur", "Veuillez entrer des nombres valides dans tous les champs")
-    except Exception as e:
-        messagebox.showerror("Erreur", f"Une erreur est survenue : {str(e)}")
+            self.style.configure("rouge.Horizontal.TProgressbar", foreground='Green', background='Green')
 
-def copier_mdp():
-    try:
-        mot_de_passe = resultat_label.cget("text").replace("Mot de passe : ", "")
-        fenetre.clipboard_clear()
-        fenetre.clipboard_append(mot_de_passe)
-        fenetre.update()
-        messagebox.showinfo("Succès", "Mot de passe copié dans le presse-papiers !")
-    except Exception as e:
-        messagebox.showerror("Erreur", f"Impossible de copier : {str(e)}")
 
-# Créer la fenêtre principale
-fenetre = tk.Tk()
-fenetre.title("TitreApplication.exe")
-fenetre.geometry("600x400")
+class ControleurGestionnaireMDP:
+    """Contrôleur principal de l'application"""
 
-# Cadre global
-cadre_global = ttk.Frame(fenetre, padding=10)
-cadre_global.pack(fill="both", expand=True)
-cadre_global.config(relief="groove", borderwidth=2)
+    def __init__(self):
+        self.utilisateur = self._init_utilisateur()
+        self.chiffrement = Chiffrement()
+        self.mdp_dao = MotDePasseDao()
 
-# Nom de l'application
-titre_label = tk.Label(cadre_global, text="TitreApplication.exe", font=("Arial", 16))
-titre_label.pack(fill="x", pady=5)
+        # Configuration de la fenêtre principale
+        self.racine = tk.Tk()
+        self.racine.title("Gestionnaire de mots de passe")
+        self.racine.geometry("600x400")
 
-# Menu
-menu_cadre = ttk.Frame(cadre_global)
-menu_cadre.pack(fill="x", pady=5)
+        # Configuration du cadre principal
+        self.cadre_principal = ttk.Frame(self.racine, padding=10)
+        self.cadre_principal.pack(fill="both", expand=True)
+        self.cadre_principal.config(relief="groove", borderwidth=2)
 
-coffre_bouton = ttk.Button(menu_cadre, text="Coffre fort")
-coffre_bouton.pack(side="left", padx=5)
+        # Titre de l'application
+        self.titre_app = tk.Label(self.cadre_principal, text="Gestionnaire de mots de passe", font=("Arial", 16))
+        self.titre_app.pack(fill="x", pady=5)
 
-generateur_bouton = ttk.Button(menu_cadre, text="Générateur de mot de passe")
-generateur_bouton.pack(side="left", padx=5)
+        # Menu
+        self.cadre_menu = ttk.Frame(self.cadre_principal)
+        self.cadre_menu.pack(fill="x", pady=5)
 
-# Cadre du contenu principal
-cadre_contenu = ttk.Frame(cadre_global, relief="groove", borderwidth=2)
-cadre_contenu.pack(fill="both", expand=True, pady=10)
+        # Cadre de contenu
+        self.cadre_contenu = ttk.Frame(self.cadre_principal, relief="groove", borderwidth=2)
+        self.cadre_contenu.pack(fill="both", expand=True, pady=10)
 
-# Ajouter le contenu du générateur de mot de passe
-generateur_label = tk.Label(cadre_contenu, text="Générateur de mot de passe", font=("Arial", 14))
-generateur_label.pack(pady=10)
+        # Initialisation des vues
+        self.vue_generateur = VueGenerateur(self.cadre_contenu, self)
+        self.vue_coffre = VueCoffre(self.cadre_contenu, self)
+        self.vue_csv = VueCSV(self.cadre_contenu)
 
-# Création du cadre pour les entrées numériques
-entries_frame = ttk.Frame(cadre_contenu)
-entries_frame.pack(pady=10)
+        # Configuration des boutons du menu
+        self.configurer_menu()
 
-# Création des 4 entrées en grille 2x2
-frame1 = ttk.Frame(entries_frame)
-frame1.grid(row=0, column=0, padx=10, pady=5)
-tk.Label(frame1, text="Nombre de caratere maluscule").pack()
-entry1 = ttk.Entry(frame1, width=10)
-entry1.insert("end", "0")
-entry1.pack()
+        # Affichage initial
+        self.afficher_generateur()
 
-frame2 = ttk.Frame(entries_frame)
-frame2.grid(row=0, column=1, padx=10, pady=5)
-tk.Label(frame2, text="Nombre de caratere minuscule").pack()
-entry2 = ttk.Entry(frame2, width=10)
-entry2.insert("end", "0")
-entry2.pack()
+    def _init_utilisateur(self) -> Utilisateur:
+        identifiant = os.getenv("login")
+        mot_de_passe = os.getenv("mdp")
+        return Utilisateur(identifiant, mot_de_passe)
 
-frame3 = ttk.Frame(entries_frame)
-frame3.grid(row=1, column=0, padx=10, pady=5)
-tk.Label(frame3, text="Nombre de Numero").pack()
-entry3 = ttk.Entry(frame3, width=10)
-entry3.insert("end", "0")
-entry3.pack()
+    def configurer_menu(self):
+        ttk.Button(self.cadre_menu, text="Coffre fort",
+                   command=self.afficher_coffre).pack(side="left", padx=5)
+        ttk.Button(self.cadre_menu, text="Générateur de mot de passe",
+                   command=self.afficher_generateur).pack(side="left", padx=5)
+        ttk.Button(self.cadre_menu, text="Importer via CSV",
+                   command=self.afficher_csv).pack(side="left", padx=5)
 
-frame4 = ttk.Frame(entries_frame)
-frame4.grid(row=1, column=1, padx=10, pady=5)
-tk.Label(frame4, text="Nombre de caratere speciale").pack()
-entry4 = ttk.Entry(frame4, width=10)
-entry4.insert("end", "0")
-entry4.pack()
+    def afficher_generateur(self):
+        self.vue_generateur = VueGenerateur(self.cadre_contenu, self)
 
-bouton_generer = ttk.Button(cadre_contenu, text="Générer le mot de passe", command=generer_mdp)
-bouton_generer.pack(pady=5)
+    def afficher_coffre(self):
+        self.vue_coffre = VueCoffre(self.cadre_contenu, self)
+        self.mettre_a_jour_donnees_coffre()
 
-s = ttk.Style()
-s.theme_use('clam')
-s.configure("red.Horizontal.TProgressbar", foreground='red', background='red')
+    def afficher_csv(self):
+        self.vue_csv = VueCSV(self.cadre_contenu)
 
-resultat_label = tk.Label(cadre_contenu, text="", font=("Arial", 12), fg="black")
-resultat_label.pack(pady=10)
+    def ecrire_mot_de_passe(self):
+        # Demander à l'utilisateur d'entrer un mot de passe
+        mdp = simpledialog.askstring("Mot de passe", "Entrez votre mot de passe:", show="*")
 
-# Création du cadre pour les cases à cocher
-checkbox_frame = ttk.Frame(cadre_contenu)
-checkbox_frame.pack(pady=5)
+        if mdp:
+            try:
+                # Créer un nouvel objet Motdepasse avec le mot de passe entré
+                self.mot_de_passe_courant = Motdepasse(0, 0, 0, 0, 1, mdp)
 
-# Variables pour chaque case à cocher
-var1 = tk.BooleanVar()
-var2 = tk.BooleanVar()
-var3 = tk.BooleanVar()
-var4 = tk.BooleanVar()
-var5 = tk.BooleanVar()
-var6 = tk.BooleanVar()
+                # Calculer la force du mot de passe
+                force = (self.mot_de_passe_courant.verifier_robustesse_mdp() / 17) * 100
+                self.vue_generateur.mettre_a_jour_barre_progression(force)
 
-# Première rangée
-checkbox1 = ttk.Checkbutton(checkbox_frame, text="Retirer les caractères semblables", variable=var1)
-checkbox1.grid(row=0, column=0, padx=5, pady=2, sticky="w")
+                # Mettre à jour l'affichage
+                texte_resultat = f"Mot de passe : {self.mot_de_passe_courant.mdp}\n note du mot de passe : {force}"
+                self.vue_generateur.etiquette_resultat.config(text=texte_resultat)
 
-checkbox2 = ttk.Checkbutton(checkbox_frame, text="Condition 2", variable=var2)
-checkbox2.grid(row=0, column=1, padx=5, pady=2, sticky="w")
+                # Activer les boutons
+                self.vue_generateur.bouton_copier.config(state="normal")
+                self.vue_generateur.bouton_ameliorer.config(state="normal")
+                self.vue_generateur.bouton_sauvegarder.config(state="normal")
+                
+            except Exception as e:
+                messagebox.showerror("Erreur", f"Une erreur est survenue : {str(e)}")
 
-checkbox3 = ttk.Checkbutton(checkbox_frame, text="Condition 3", variable=var3)
-checkbox3.grid(row=0, column=2, padx=5, pady=2, sticky="w")
+    def generer_mot_de_passe(self):
+        try:
+            valeurs = self.vue_generateur.obtenir_valeurs_champs()
+            cases_cochees = self.vue_generateur.obtenir_valeurs_cases()
+            caracteres_exclus = self.vue_generateur.obtenir_caracteres_exclus()
 
-# Deuxième rangée
-checkbox4 = ttk.Checkbutton(checkbox_frame, text="Condition 4", variable=var4)
-checkbox4.grid(row=1, column=0, padx=5, pady=2, sticky="w")
+            # Création de l'objet mot de passe
+            obj_mdp = Motdepasse(valeurs['maj'], valeurs['min'],
+                                 valeurs['num'], valeurs['special'], 1, None)
 
-checkbox5 = ttk.Checkbutton(checkbox_frame, text="Condition 5", variable=var5)
-checkbox5.grid(row=1, column=1, padx=5, pady=2, sticky="w")
+            if cases_cochees.get('aleatoire', False):
+                print("alea")
+                obj_mdp.genere_mot_de_passe(4, 4, 4, 4)
 
-checkbox6 = ttk.Checkbutton(checkbox_frame, text="Condition 6", variable=var6)
-checkbox6.grid(row=1, column=2, padx=5, pady=2, sticky="w")
+            obj_mdp.caracteres_exclus(caracteres_exclus)
 
-bar = ttk.Progressbar(cadre_contenu, style="red.Horizontal.TProgressbar", orient="horizontal", length=200, mode="determinate")
-bar.pack(pady=20)
+            # Applique le remplacement des caractères similaires si la case est cochée
+            if cases_cochees.get('remplacer_caracteres', False):
+                obj_mdp.remplacer_caracteres_repetes()
 
-copie_bouton = ttk.Button(cadre_contenu, text="Copier le mot de passe", command=copier_mdp, state="disabled")
-copie_bouton.pack(pady=5)
+            # Calcul de la force du mot de passe
+            force = (obj_mdp.verifier_robustesse_mdp() / 17) * 100
+            self.vue_generateur.mettre_a_jour_barre_progression(force)
 
-fenetre.mainloop()
+            texte_resultat = f"Mot de passe : {obj_mdp.mdp}\n note du mot de passe : {force}"
+            self.vue_generateur.etiquette_resultat.config(text=texte_resultat)
+
+            # Activer les boutons de copie et d'amélioration
+            self.vue_generateur.bouton_copier.config(state="normal")
+            self.vue_generateur.bouton_ameliorer.config(state="normal")
+            self.vue_generateur.bouton_sauvegarder.config(state="normal")
+            # Stocker le mot de passe pour une éventuelle amélioration
+            self.mot_de_passe_courant = obj_mdp
+
+        except ValueError:
+            messagebox.showerror("Erreur", "Veuillez entrer des nombres valides dans tous les champs")
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Une erreur est survenue : {str(e)}")
+
+    def ameliorer_mot_de_passe(self):
+        try:
+            # Vérifier si un mot de passe a été généré
+            if not hasattr(self, 'mot_de_passe_courant'):
+                messagebox.showerror("Erreur", "Générez d'abord un mot de passe")
+                return
+
+            # Améliorer le mot de passe
+            self.mot_de_passe_courant.upgrade_mot_de_passe()
+
+            # Recalculer la force
+            force = (self.mot_de_passe_courant.verifier_robustesse_mdp() / 17) * 100
+
+            # Mettre à jour l'affichage
+            texte_resultat = f"Mot de passe : {self.mot_de_passe_courant.mdp}\n note du mot de passe : {force}"
+            self.vue_generateur.etiquette_resultat.config(text=texte_resultat)
+
+            # Mettre à jour la barre de progression
+            self.vue_generateur.mettre_a_jour_barre_progression(force)
+
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Impossible d'améliorer le mot de passe : {str(e)}")
+
+    def copier_mot_de_passe(self):
+        try:
+            mot_de_passe = self.vue_generateur.etiquette_resultat.cget("text").split("\n")[0].replace("Mot de passe : ","")
+            self.racine.clipboard_clear()
+            self.racine.clipboard_append(mot_de_passe)
+            self.racine.update()
+            messagebox.showinfo("Succès", "Mot de passe copié dans le presse-papiers !")
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Impossible de copier : {str(e)}")
+
+    def sauvgarder_mot_de_passe(self):
+        try:
+            self.mdp_dao.insertMdp(
+                nbCaractere=self.mot_de_passe_courant.taille, 
+                nbNum=self.mot_de_passe_courant.nb_numero, 
+                nbCarSpe=self.mot_de_passe_courant.nb_caratere_special, 
+                idSite="idSite", 
+                mdp=self.mot_de_passe_courant.mdp,  # Utilisez .mdp au lieu de l'objet entier
+                categorie=self.mot_de_passe_courant.categorie, 
+                idUtilisateur="idUtilisateur",
+                Robuste=self.mot_de_passe_courant.verifier_robustesse_mdp(), 
+                carMini=self.mot_de_passe_courant.nb_caratere_min, 
+                carMaj=self.mot_de_passe_courant.nb_caratere_maj
+            )
+            messagebox.showinfo("Succès", "Mot de passe sauvegardé dans la base de données !")
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Impossible de sauvegarder : {str(e)}")
+
+    def mettre_a_jour_donnees_coffre(self):
+        mots_de_passe = self.mdp_dao.recupAllMdpUser(self.utilisateur.getLogin(), self.utilisateur.getMdp())
+        donnees_formatees = self._formater_donnees_coffre(mots_de_passe)
+        self.vue_coffre.mettre_a_jour_arborescence(donnees_formatees)
+
+    def _formater_donnees_coffre(self, donnees: List[Tuple]) -> List[Tuple]:
+        donnees_formatees = []
+        for ligne in donnees:
+            try:
+                mdp_dechiffre = self.chiffrement.decrypteMDP(ligne[0])
+                donnees_formatees.append((mdp_dechiffre,) + ligne[1:])
+            except Exception as e:
+                print(f"Erreur de formatage : {e}")
+                donnees_formatees.append(("ERREUR",) + ligne[1:])
+        return donnees_formatees
+
+    def executer(self):
+        self.racine.mainloop()
+
+
+class VueCoffre:
+    """Vue pour le coffre-fort de mots de passe"""
+
+    def __init__(self, parent, controleur):
+        self.parent = parent
+        self.controleur = controleur
+        self.configurer_interface()
+
+    def configurer_interface(self):
+        self.effacer()
+
+        # Titre
+        self.etiquette_titre = tk.Label(self.parent, text="Coffre de mot de passe", font=("Arial", 14))
+        self.etiquette_titre.pack(pady=10)
+
+        # Configuration de l'arborescence
+        colonnes = ("Mot de passe", "Site", "Categorie", "NbCaractère", "NbChiffre",
+                    "NbCaraSpe", "NbCarMini", "NbCarMaj")
+        self.arborescence = ttk.Treeview(self.parent, columns=colonnes, show="headings")
+
+        for col in colonnes:
+            self.arborescence.heading(col, text=col)
+            self.arborescence.column(col, anchor="center")
+
+        # Barre de défilement
+        barre_defilement = ttk.Scrollbar(self.parent, orient="vertical", command=self.arborescence.yview)
+        self.arborescence.configure(yscrollcommand=barre_defilement.set)
+
+        # Placement
+        self.arborescence.pack(side="left", fill="both", expand=True)
+        barre_defilement.pack(side="right", fill="y")
+
+    def effacer(self):
+        for widget in self.parent.winfo_children():
+            widget.destroy()
+
+    def mettre_a_jour_arborescence(self, donnees: List[Tuple]):
+        for ligne in self.arborescence.get_children():
+            self.arborescence.delete(ligne)
+        for ligne in donnees:
+            self.arborescence.insert("", "end", values=ligne)
+
+
+class VueCSV:
+    """Vue pour l'import de CSV"""
+
+    def __init__(self, cadre_contenu):
+        self.cadre_contenu = cadre_contenu
+        self.configurer_interface()
+
+    def configurer_interface(self):
+        self.effacer()
+
+        entries_frame = ttk.Frame(self.cadre_contenu)
+        entries_frame.pack(pady=10)
+
+        # Titre
+        etiquette_titre = tk.Label(self.cadre_contenu, text="Importer des mdp avec un CSV", font=("Arial", 14))
+        etiquette_titre.pack(pady=10)
+
+        csv_select = tk.Label(self.cadre_contenu, text="Import CSV", font=("Arial", 9))
+        csv_select.pack(pady=10)
+
+        import_bouton = ttk.Button(self.cadre_contenu, text="importer un fichier CSV",command=lambda: self.manipCsv(csv_select, tk, self.cadre_contenu))
+        import_bouton.pack(pady=10)
+
+
+    def effacer(self):
+        for widget in self.cadre_contenu.winfo_children():
+            widget.destroy()
+
+    def manipCsv(self, label, tk, cadre_contenu):
+        filename = filedialog.askopenfilename()
+        print('Selectionner:', filename)
+        label.config(text=filename)
+        fCSV = fonctionCSV(filename)
+        fCSV.envoieMdpViaCSV(tk, cadre_contenu)
+
+
+if __name__ == "__main__":
+    app = ControleurGestionnaireMDP()
+    app.executer()
