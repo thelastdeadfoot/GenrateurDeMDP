@@ -654,9 +654,10 @@ class VueCoffre:
         chifr = Chiffrement()
         mdp_dao = MotDePasseDao()
         user_daod = UtilisateurDao()
+        site_dao = SiteDao()
         _id = user_daod.recup_id_utilisateur(self.utilisateur.get_login())
         mdp = "\\x"+chifr.crypte_mdp(valeur[0]).hex()
-        id_site = int(valeur[1])
+        id_site = site_dao.recup_id_site(valeur[1])
         if valeur[2]=="None":
             categorie = None
         else :
